@@ -374,6 +374,43 @@
             footer { flex-direction: column; gap: 16px; text-align: center; padding: 28px 24px; }
             .tl-arrow { display: none; }
         }
+
+        /* ── HAMBURGER + MOBILE ── */
+        .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:transparent;border:none;z-index:1010;}
+        .nav-hamburger span{display:block;width:22px;height:2px;background:var(--text2);border-radius:2px;transition:all .25s;}
+        .nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);background:var(--neon);}
+        .nav-hamburger.open span:nth-child(2){opacity:0;}
+        .nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);background:var(--neon);}
+        .mobile-menu{position:fixed;top:62px;left:0;right:0;bottom:0;background:rgba(9,9,9,.98);backdrop-filter:blur(24px);z-index:999;display:flex;flex-direction:column;padding:28px 24px 40px;transform:translateX(105%);transition:transform .35s cubic-bezier(.16,1,.3,1);overflow-y:auto;}
+        .mobile-menu.open{transform:translateX(0);}
+        .mobile-menu-links{display:flex;flex-direction:column;margin-bottom:32px;}
+        .mobile-menu-links a{display:block;padding:17px 0;font-size:1.05rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);text-decoration:none;border-bottom:1px solid var(--border);transition:color .15s;}
+        .mobile-menu-links a:hover,.mobile-menu-links a.hi{color:var(--neon);}
+        .mobile-menu-ctas{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+        .mobile-menu-ctas a{justify-content:center;text-align:center;padding:14px;font-size:.88rem;}
+
+        @media(max-width:768px){
+            nav{padding:0 20px;height:58px;}
+            .nav-links{display:none;}
+            .nav-r{display:none;}
+            .nav-hamburger{display:flex;}
+            .mobile-menu{top:58px;}
+            .page-hero{padding:100px 20px 52px;}
+            .steps-section,.timeline-section,.faq-section{padding:52px 20px;}
+            .timeline-grid{grid-template-columns:1fr 1fr;}
+            .faq-grid{grid-template-columns:1fr;}
+            .audience-inner{grid-template-columns:1fr;}
+            .audience-card{padding:36px 20px;}
+            .cta-strip{flex-direction:column;align-items:flex-start;padding:44px 20px;gap:20px;}
+            .cta-acts{flex-direction:column;width:100%;}
+            .cta-acts a{justify-content:center;text-align:center;width:100%;}
+            footer{flex-direction:column;gap:16px;text-align:center;padding:28px 20px;}
+            .footer-links{flex-wrap:wrap;justify-content:center;gap:10px;}
+            .tl-arrow{display:none;}
+            .step{grid-template-columns:48px 1fr;gap:0 20px;}
+            .step-body{padding:24px 20px 24px 0;}
+            .step-num{font-size:1.3rem;}
+        }
     </style>
 </head>
 <body>
@@ -391,7 +428,26 @@
         <a href="admin.html" class="btn-gs">Admin</a>
         <a href="contact.html" class="btn-ns">List Your Event</a>
     </div>
+
+    <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+    </button>
 </nav>
+
+<div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-links">
+        <a href="index.html" onclick="closeMenu()">Portal</a>
+        <a href="index.html#about" onclick="closeMenu()">For Organizers</a>
+        <a href="index.html#events" onclick="closeMenu()">Events</a>
+        <a href="how-it-works.html" class="hi" onclick="closeMenu()">How It Works</a>
+        <a href="contact.html" onclick="closeMenu()">Contact</a>
+        <a href="admin.html" onclick="closeMenu()">Admin</a>
+    </div>
+    <div class="mobile-menu-ctas">
+        <a href="contact.html?tab=list" class="btn-ns" onclick="closeMenu()">List Your Event</a>
+        <a href="contact.html?tab=partner" class="btn-gl" onclick="closeMenu()">Partner With Us</a>
+    </div>
+</div>
 
 <!-- HERO -->
 <div class="page-hero">
@@ -613,6 +669,18 @@
 </footer>
 
 <script>
+
+    function toggleMenu() {
+        const h = document.getElementById('hamburger'), m = document.getElementById('mobileMenu');
+        h.classList.toggle('open'); m.classList.toggle('open');
+        document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
+    }
+    function closeMenu() {
+        document.getElementById('hamburger').classList.remove('open');
+        document.getElementById('mobileMenu').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
     const io = new IntersectionObserver((entries) => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } });
     }, { threshold: 0.06 });
