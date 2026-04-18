@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS — How It Works</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800;900&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #C8FF00;
+            --neon2: #D8FF33;
+            --neon-dim: rgba(200,255,0,0.1);
+            --neon-glow: rgba(200,255,0,0.22);
+            --bg: #090909;
+            --bg2: #101010;
+            --bg3: #161616;
+            --bg4: #1C1C1C;
+            --border: rgba(255,255,255,0.06);
+            --border2: rgba(255,255,255,0.11);
+            --text: #F2F2F2;
+            --text2: #7A7A7A;
+            --text3: #484848;
+            --white: #FFFFFF;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.012) 2px, rgba(0,0,0,.012) 4px);
+            pointer-events: none; z-index: 9999;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 52px; height: 62px;
+            background: rgba(9,9,9,.9); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.45rem; font-weight: 900; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--white); text-decoration: none;
+        }
+        .nav-logo span { color: var(--neon); }
+        .nav-links { display: flex; align-items: center; list-style: none; }
+        .nav-links a {
+            display: block; padding: 8px 16px;
+            font-size: .78rem; font-weight: 600; letter-spacing: .07em;
+            text-transform: uppercase; color: var(--text3); text-decoration: none; transition: color .15s;
+        }
+        .nav-links a:hover { color: var(--text2); }
+        .nav-links a.hi { color: var(--neon); }
+        .nav-r { display: flex; align-items: center; gap: 10px; }
+        .btn-gs {
+            padding: 7px 16px; border: 1px solid var(--border2); border-radius: 3px;
+            background: transparent; color: var(--text2);
+            font-family: 'Barlow', sans-serif; font-size: .75rem; font-weight: 700;
+            letter-spacing: .05em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-gs:hover { color: var(--white); border-color: rgba(255,255,255,.22); }
+        .btn-ns {
+            padding: 7px 18px; border: none; border-radius: 3px;
+            background: var(--neon); color: #000;
+            font-family: 'Barlow', sans-serif; font-size: .75rem; font-weight: 800;
+            letter-spacing: .05em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-ns:hover { background: var(--neon2); box-shadow: 0 0 18px var(--neon-glow); }
+
+        /* HERO */
+        .page-hero {
+            position: relative;
+            padding: 160px 52px 90px;
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .hero-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 54px 54px;
+            mask-image: radial-gradient(ellipse 80% 80% at 80% 50%, black 20%, transparent 100%);
+            pointer-events: none;
+        }
+        .hero-accent {
+            position: absolute; top: 80px; left: 52px;
+            width: 260px; height: 260px;
+            border: 1px solid rgba(200,255,0,.07); border-radius: 50%; pointer-events: none;
+        }
+        .hero-accent::before { content: ''; position: absolute; inset: 28px; border: 1px solid rgba(200,255,0,.04); border-radius: 50%; }
+        .hero-dot {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 6px; height: 6px; background: var(--neon); border-radius: 50%;
+            box-shadow: 0 0 16px var(--neon), 0 0 30px rgba(200,255,0,.3);
+        }
+        .stag {
+            display: inline-flex; align-items: center; gap: 10px;
+            font-size: .68rem; font-weight: 700; letter-spacing: .17em;
+            text-transform: uppercase; color: var(--neon); margin-bottom: 18px;
+        }
+        .stag::before { content: ''; width: 18px; height: 2px; background: var(--neon); }
+        .page-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(4rem, 8vw, 8rem);
+            font-weight: 900; text-transform: uppercase; line-height: .92;
+            color: var(--white); margin-bottom: 28px; max-width: 900px;
+        }
+        .page-title .hl { color: var(--neon); }
+        .page-title .ghost { -webkit-text-stroke: 1.5px rgba(255,255,255,.14); color: transparent; }
+        .page-desc {
+            font-size: 1rem; color: var(--text2); line-height: 1.7; max-width: 500px;
+        }
+
+        /* STEPS SECTION */
+        .steps-section {
+            max-width: 1340px; margin: 0 auto; padding: 90px 52px;
+        }
+        .steps-header {
+            text-align: center; margin-bottom: 70px;
+        }
+        .section-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(2.2rem, 4vw, 4rem);
+            font-weight: 900; text-transform: uppercase; line-height: .95;
+            color: var(--white);
+        }
+        .section-title .d { color: var(--text3); }
+        .section-sub {
+            font-size: .95rem; color: var(--text2); line-height: 1.6; margin-top: 14px; max-width: 480px; margin-left: auto; margin-right: auto;
+        }
+
+        /* STEP CARDS */
+        .steps-flow {
+            position: relative;
+        }
+        .step {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 0 36px;
+            margin-bottom: 2px;
+            background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 6px; overflow: hidden;
+            transition: border-color .28s;
+            cursor: default;
+        }
+        .step:hover { border-color: rgba(200,255,0,.2); }
+        .step:hover .step-num { background: rgba(200,255,0,.06); }
+        .step-num-col {
+            background: var(--bg3); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start; padding: 32px 0 0;
+            position: relative;
+        }
+        .step-num {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.6rem; font-weight: 900; color: var(--neon);
+            line-height: 1; transition: background .2s;
+            width: 60px; text-align: center; padding: 0 0 8px;
+        }
+        .step-connector {
+            flex: 1; width: 1px; background: var(--border); margin: 0 auto;
+        }
+        .step:last-child .step-connector { display: none; }
+        .step-body { padding: 32px 32px 32px 0; }
+        .step-tag {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: .62rem; font-weight: 800; letter-spacing: .14em;
+            text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+        }
+        .step-tag-dot { width: 5px; height: 5px; background: var(--neon); border-radius: 50%; }
+        .step-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 900;
+            text-transform: uppercase; color: var(--white); line-height: 1; margin-bottom: 12px;
+        }
+        .step-desc {
+            font-size: .93rem; color: var(--text2); line-height: 1.7; max-width: 580px; margin-bottom: 18px;
+        }
+        .step-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pill {
+            padding: 5px 12px; border: 1px solid var(--border2); border-radius: 2px;
+            font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+            color: var(--text3);
+        }
+
+        /* DIVIDER */
+        .section-divider {
+            border: none; border-top: 1px solid var(--border); margin: 0;
+        }
+
+        /* AUDIENCE SPLIT */
+        .audience-section {
+            border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+        }
+        .audience-inner {
+            max-width: 1340px; margin: 0 auto; padding: 80px 52px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border);
+        }
+        .audience-card {
+            background: var(--bg); padding: 52px 48px;
+        }
+        .audience-eyebrow {
+            font-size: .68rem; font-weight: 700; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--text3); margin-bottom: 14px;
+        }
+        .audience-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 900;
+            text-transform: uppercase; color: var(--white); line-height: 1; margin-bottom: 20px;
+        }
+        .audience-title .hl { color: var(--neon); }
+        .audience-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+        .audience-list li {
+            display: flex; align-items: flex-start; gap: 12px;
+            font-size: .88rem; color: var(--text2); line-height: 1.5;
+        }
+        .audience-list li::before {
+            content: '→'; color: var(--neon); font-weight: 800; flex-shrink: 0; margin-top: 1px;
+        }
+        .btn-nl {
+            display: inline-flex; align-items: center;
+            padding: 13px 28px; border: none; border-radius: 3px;
+            background: var(--neon); color: #000;
+            font-family: 'Barlow', sans-serif; font-size: .88rem; font-weight: 800;
+            letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-nl:hover { background: var(--neon2); box-shadow: 0 0 28px var(--neon-glow); transform: translateY(-1px); }
+        .btn-gl {
+            display: inline-flex; align-items: center;
+            padding: 13px 28px; background: transparent; border: 1px solid var(--border2); border-radius: 3px;
+            color: var(--text); font-family: 'Barlow', sans-serif; font-size: .88rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-gl:hover { border-color: rgba(255,255,255,.28); color: var(--white); }
+
+        /* TIMELINE VISUAL */
+        .timeline-section {
+            max-width: 1340px; margin: 0 auto; padding: 90px 52px;
+        }
+        .timeline-header { margin-bottom: 56px; }
+        .timeline-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+        }
+        .tl-card {
+            background: var(--bg2); padding: 32px 26px; position: relative; transition: background .2s;
+        }
+        .tl-card:hover { background: var(--bg3); }
+        .tl-step-label {
+            font-size: .62rem; font-weight: 800; letter-spacing: .16em;
+            text-transform: uppercase; color: var(--text3); margin-bottom: 18px;
+        }
+        .tl-step-label span { color: var(--neon); }
+        .tl-icon {
+            font-size: 1.3rem; margin-bottom: 14px;
+        }
+        .tl-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.3rem; font-weight: 900; text-transform: uppercase;
+            color: var(--white); line-height: 1; margin-bottom: 10px;
+        }
+        .tl-desc { font-size: .78rem; color: var(--text2); line-height: 1.6; }
+        .tl-arrow {
+            position: absolute; top: 50%; right: -1px;
+            width: 18px; height: 18px;
+            background: var(--bg); border: 1px solid var(--border2); border-radius: 50%;
+            transform: translateY(-50%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .5rem; color: var(--neon); z-index: 1;
+        }
+        .tl-card:last-child .tl-arrow { display: none; }
+
+        /* FAQ */
+        .faq-section {
+            border-top: 1px solid var(--border);
+            max-width: 1340px; margin: 0 auto; padding: 90px 52px;
+        }
+        .faq-header { margin-bottom: 48px; }
+        .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .faq-item {
+            background: var(--bg2); padding: 28px 28px; cursor: pointer; transition: background .2s;
+        }
+        .faq-item:hover { background: var(--bg3); }
+        .faq-q {
+            font-size: .9rem; font-weight: 800; color: var(--white);
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+        }
+        .faq-q .chevron {
+            color: var(--neon); font-size: .7rem; flex-shrink: 0; margin-top: 3px;
+            transition: transform .2s;
+        }
+        .faq-a { font-size: .82rem; color: var(--text2); line-height: 1.6; display: none; }
+        .faq-item.open .faq-a { display: block; }
+        .faq-item.open .chevron { transform: rotate(90deg); }
+
+        /* CTA STRIP */
+        .cta-strip {
+            border-top: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg2) 0%, var(--bg) 100%);
+            padding: 80px 52px;
+            display: flex; align-items: center; justify-content: space-between; gap: 40px;
+            position: relative; overflow: hidden;
+        }
+        .cta-strip::before {
+            content: '';
+            position: absolute; left: 0; top: 0;
+            width: 3px; height: 100%; background: var(--neon);
+            box-shadow: 0 0 20px var(--neon-glow);
+        }
+        .cta-msg {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: clamp(2rem, 4vw, 4rem); font-weight: 900;
+            text-transform: uppercase; line-height: .95; color: var(--white);
+        }
+        .cta-msg .faint { color: var(--text3); }
+        .cta-acts { display: flex; gap: 12px; flex-shrink: 0; }
+        .btn-bk {
+            padding: 14px 28px; border: none; border-radius: 3px;
+            background: var(--neon); color: #000;
+            font-family: 'Barlow', sans-serif; font-size: .9rem; font-weight: 800;
+            letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-bk:hover { background: var(--neon2); box-shadow: 0 0 28px var(--neon-glow); transform: translateY(-1px); }
+        .btn-bko {
+            padding: 14px 28px; background: transparent; border: 1px solid var(--border2); border-radius: 3px;
+            color: var(--text); font-family: 'Barlow', sans-serif; font-size: .9rem; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .15s; text-decoration: none;
+        }
+        .btn-bko:hover { border-color: rgba(255,255,255,.28); color: var(--white); }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border); padding: 36px 52px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer-logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.2rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--white);
+        }
+        .footer-logo span { color: var(--neon); }
+        .footer-copy { font-size: .72rem; color: var(--text3); letter-spacing: .04em; }
+        .footer-links { display: flex; gap: 6px; }
+        .footer-links a {
+            padding: 6px 10px; font-size: .7rem; font-weight: 600; letter-spacing: .06em;
+            text-transform: uppercase; color: var(--text3); text-decoration: none; transition: color .15s;
+        }
+        .footer-links a:hover { color: var(--text2); }
+
+        /* REVEAL */
+        .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
+        .reveal.vis { opacity: 1; transform: none; }
+        .d1 { transition-delay: .05s; } .d2 { transition-delay: .12s; } .d3 { transition-delay: .19s; } .d4 { transition-delay: .26s; }
+
+        /* MOBILE */
+        @media (max-width: 900px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            .page-hero { padding: 120px 24px 60px; }
+            .steps-section, .timeline-section, .faq-section { padding: 60px 24px; }
+            .timeline-grid { grid-template-columns: 1fr 1fr; }
+            .faq-grid { grid-template-columns: 1fr; }
+            .audience-inner { grid-template-columns: 1fr; }
+            .audience-card { padding: 40px 28px; }
+            .cta-strip { flex-direction: column; align-items: flex-start; padding: 52px 24px; }
+            footer { flex-direction: column; gap: 16px; text-align: center; padding: 28px 24px; }
+            .tl-arrow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <a href="index.html" class="nav-logo">NEX<span>US</span></a>
+    <ul class="nav-links">
+        <li><a href="index.html">Portal</a></li>
+        <li><a href="index.html#about">For Organizers</a></li>
+        <li><a href="index.html#events">Events</a></li>
+        <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-r">
+        <a href="admin.html" class="btn-gs">Admin</a>
+        <a href="contact.html" class="btn-ns">List Your Event</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+    <div class="hero-grid"></div>
+    <div class="hero-accent"><div class="hero-dot"></div></div>
+    <div class="stag">The Process</div>
+    <div class="page-title">
+        How It<br>
+        <span class="hl">Works</span><br>
+        <span class="ghost">For You</span>
+    </div>
+    <p class="page-desc">NEXUS is a curated event discovery portal. Organizers partner with us to get a fully custom branded page — we handle the discovery layer, you own the experience.</p>
+</div>
+
+<!-- STEPS -->
+<div class="steps-section">
+    <div class="steps-header reveal">
+        <div class="stag">Step by Step</div>
+        <div class="section-title">From Enquiry<br>to <span class="d">Live</span></div>
+        <p class="section-sub">Four steps from your first message to your event page going live on the NEXUS portal.</p>
+    </div>
+
+    <div class="steps-flow">
+        <div class="step reveal d1">
+            <div class="step-num-col">
+                <div class="step-num">01</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-body">
+                <div class="step-tag"><div class="step-tag-dot"></div> Starting Point</div>
+                <div class="step-title">Demo Page &<br>First Contact</div>
+                <p class="step-desc">You discover NEXUS through our portal, a referral, or a partner event. You find the "List Your Event" or "Partner With Us" button and submit your enquiry. We review your event and reach out within 48 hours.</p>
+                <div class="step-pills">
+                    <span class="pill">Submit Enquiry</span>
+                    <span class="pill">Event Details</span>
+                    <span class="pill">48h Response</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="step reveal d2">
+            <div class="step-num-col">
+                <div class="step-num">02</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-body">
+                <div class="step-tag"><div class="step-tag-dot"></div> Strategy Session</div>
+                <div class="step-title">Strategy Call &<br>Page Design</div>
+                <p class="step-desc">We schedule a strategy call to understand your event, brand, audience, and vision. Our team designs a fully custom branded event page — built to your aesthetic, with ticket integration and authentication ready.</p>
+                <div class="step-pills">
+                    <span class="pill">Strategy Call</span>
+                    <span class="pill">Custom Design</span>
+                    <span class="pill">Ticket Integration</span>
+                    <span class="pill">Edits & Approvals</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="step reveal d3">
+            <div class="step-num-col">
+                <div class="step-num">03</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-body">
+                <div class="step-tag"><div class="step-tag-dot"></div> Go Live</div>
+                <div class="step-title">Event Page<br>Goes Online</div>
+                <p class="step-desc">Once you've approved the page design, we publish it live on the NEXUS portal. Your event is immediately discoverable by our audience of engaged attendees. Direct click-through to your page — no friction, full context.</p>
+                <div class="step-pills">
+                    <span class="pill">Published Live</span>
+                    <span class="pill">Portal Discovery</span>
+                    <span class="pill">Direct Click-through</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="step reveal d4">
+            <div class="step-num-col">
+                <div class="step-num">04</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step-body">
+                <div class="step-tag"><div class="step-tag-dot"></div> Ongoing</div>
+                <div class="step-title">Admin Dashboard<br>& Analytics</div>
+                <p class="step-desc">Your event page is linked to a dedicated admin dashboard showing real-time analytics — page views, click-throughs, audience demographics, and more. Ticketing, sign-ups, and communications remain entirely in your hands. Always.</p>
+                <div class="step-pills">
+                    <span class="pill">Real-time Analytics</span>
+                    <span class="pill">Page Views</span>
+                    <span class="pill">Click-through Tracking</span>
+                    <span class="pill">You Stay in Control</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TIMELINE QUICK VIEW -->
+<div style="border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg2);">
+    <div class="timeline-section">
+        <div class="timeline-header reveal">
+            <div class="stag">At a Glance</div>
+            <div class="section-title">The Full <span class="d">Journey</span></div>
+        </div>
+        <div class="timeline-grid reveal">
+            <div class="tl-card">
+                <div class="tl-step-label">Step <span>01</span></div>
+                <div class="tl-icon">✉</div>
+                <div class="tl-title">Enquiry Sent</div>
+                <p class="tl-desc">Fill out the contact form and tell us about your event or partnership goals.</p>
+                <div class="tl-arrow">→</div>
+            </div>
+            <div class="tl-card">
+                <div class="tl-step-label">Step <span>02</span></div>
+                <div class="tl-icon">◎</div>
+                <div class="tl-title">Strategy Call</div>
+                <p class="tl-desc">A call to align on brand, design, ticketing, and go-live timing.</p>
+                <div class="tl-arrow">→</div>
+            </div>
+            <div class="tl-card">
+                <div class="tl-step-label">Step <span>03</span></div>
+                <div class="tl-icon">✦</div>
+                <div class="tl-title">Page Goes Live</div>
+                <p class="tl-desc">Your custom event page is published and discoverable on the NEXUS portal.</p>
+                <div class="tl-arrow">→</div>
+            </div>
+            <div class="tl-card">
+                <div class="tl-step-label">Step <span>04</span></div>
+                <div class="tl-icon">⬡</div>
+                <div class="tl-title">Analytics Live</div>
+                <p class="tl-desc">Track your audience in real time from your linked admin dashboard.</p>
+                <div class="tl-arrow">→</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AUDIENCE SPLIT -->
+<div class="audience-section">
+    <div class="audience-inner">
+        <div class="audience-card reveal">
+            <div class="audience-eyebrow">For Event Organizers</div>
+            <div class="audience-title">You Run<br>the <span class="hl">Show</span></div>
+            <ul class="audience-list">
+                <li>Get a fully custom branded event page built for your audience</li>
+                <li>Your event is listed and discoverable on the NEXUS portal</li>
+                <li>Attendees click directly through to your page — no friction</li>
+                <li>Ticketing, sign-ups, and comms stay entirely with you</li>
+                <li>Real-time analytics dashboard to track performance</li>
+            </ul>
+            <a href="contact.html?tab=list" class="btn-nl">List Your Event →</a>
+        </div>
+        <div class="audience-card reveal d2" style="background:var(--bg2);">
+            <div class="audience-eyebrow">For Attendees</div>
+            <div class="audience-title">Discover<br>What's <span class="hl">Next</span></div>
+            <ul class="audience-list">
+                <li>Browse a curated selection of the best events in your city</li>
+                <li>Filter by category, date, and location</li>
+                <li>Click directly through to each event's dedicated page</li>
+                <li>Never miss an event — set alerts for categories you love</li>
+                <li>Trusted, verified event listings every time</li>
+            </ul>
+            <a href="index.html#events" class="btn-gl">Browse Events →</a>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+    <div class="faq-header reveal">
+        <div class="stag">Common Questions</div>
+        <div class="section-title">Frequently <span class="d">Asked</span></div>
+    </div>
+    <div class="faq-grid reveal d2">
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">How long does it take to get my event listed? <span class="chevron">▶</span></div>
+            <div class="faq-a">From initial enquiry to a live event page typically takes 3–7 business days, depending on how quickly we can align on design and approvals during the strategy call.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">Do I need to move my ticketing to NEXUS? <span class="chevron">▶</span></div>
+            <div class="faq-a">No — your ticketing, sign-ups, and audience comms remain entirely with you. NEXUS handles discovery and your custom page; attendees click through directly to wherever you manage tickets.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">What does a custom event page include? <span class="chevron">▶</span></div>
+            <div class="faq-a">A fully branded, bespoke event page built to your aesthetic — including event details, imagery, ticket links, organizer info, countdown timer, and SEO optimization. Designed in collaboration with you during the strategy call.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">What analytics will I get access to? <span class="chevron">▶</span></div>
+            <div class="faq-a">Your admin dashboard shows real-time page views, click-through rates, audience location data, device breakdowns, and engagement over time — so you always know how your listing is performing.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">Can I list recurring or multiple events? <span class="chevron">▶</span></div>
+            <div class="faq-a">Absolutely. We offer recurring event partnerships for organizers who run regular events. Reach out via the Partner With Us form to discuss a tailored arrangement.</div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-q">Is there a cost to list my event? <span class="chevron">▶</span></div>
+            <div class="faq-a">Pricing is discussed during the strategy call and depends on the scope of your listing, the scale of your event, and the type of partnership. Get in touch and we'll put together a proposal.</div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-strip reveal">
+    <div class="cta-msg">Ready to<br><span class="faint">Go</span> Live?</div>
+    <div class="cta-acts">
+        <a href="contact.html?tab=partner" class="btn-bk">Partner With Us →</a>
+        <a href="contact.html?tab=list" class="btn-bko">List Your Event</a>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-logo">NEX<span>US</span></div>
+    <div class="footer-copy">© 2026 Nexus Portal. All rights reserved.</div>
+    <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Press</a>
+        <a href="contact.html">Contact</a>
+    </div>
+</footer>
+
+<script>
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    function toggleFaq(el) {
+        const wasOpen = el.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(f => f.classList.remove('open'));
+        if (!wasOpen) el.classList.add('open');
+    }
+</script>
+</body>
+</html>
