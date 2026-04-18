@@ -250,6 +250,32 @@
         .sub-detail-item.full { grid-column: span 2; }
         .sub-detail-item .val a { color: var(--neon); text-decoration: none; }
         .sub-modal-ft { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ── ADMIN MOBILE ── */
+        @media(max-width:900px){
+            nav{padding:0 20px;}
+            main{padding:24px 16px;}
+            .stats-strip{grid-template-columns:1fr 1fr;}
+            .tbl-wrap{overflow-x:auto;}
+            table{min-width:600px;}
+            .toolbar{margin-bottom:20px;}
+            .toolbar-title{font-size:1.5rem;}
+            .page-tabs{padding:0 16px;}
+            .sub-card-hd{flex-wrap:wrap;gap:10px;}
+            .sub-meta{margin-left:0;width:100%;justify-content:space-between;}
+            .modal{max-width:100%;margin:0;}
+            .modal-body{grid-template-columns:1fr;padding:20px 16px;}
+            .field.full{grid-column:span 1;}
+            #cd-fields{grid-template-columns:1fr!important;}
+            .section-label{grid-column:span 1;}
+        }
+        @media(max-width:600px){
+            .stats-strip{grid-template-columns:1fr 1fr;}
+            .stat-box{padding:16px;}
+            .stat-val{font-size:1.8rem;}
+            .sub-detail-grid{grid-template-columns:1fr;}
+            .sub-detail-item.full{grid-column:span 1;}
+        }
     </style>
 </head>
 <body>
@@ -551,20 +577,12 @@
 <div id="toast"></div>
 
 <script>
-// Events live in the ORIGINAL Supabase project
-const EVENTS_URL  = 'https://cswutrwcgrqyzybtghzq.supabase.co';
-const EVENTS_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd3V0cndjZ3JxeXp5YnRnaHpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MjgxMzcsImV4cCI6MjA5MjAwNDEzN30.jzDvpEEYeBg9eqvgj1Pb5Y7WNtmRM8fD9sB8wL3r6lQ';
-
-// Submissions live in the NEW Supabase project
-const SUBS_URL  = 'https://dxuraqjrarpqarratjbz.supabase.co';
-const SUBS_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dXJhcWpyYXJwcWFycmF0amJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjc4MjUsImV4cCI6MjA5MjEwMzgyNX0.1yEE7FGRF1Y0fjJ80r4jg1QUcC-xlLzzg5LdGzv8fek';
-
+const SUPABASE_URL = 'https://dxuraqjrarpqarratjbz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dXJhcWpyYXJwcWFycmF0amJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjc4MjUsImV4cCI6MjA5MjEwMzgyNX0.1yEE7FGRF1Y0fjJ80r4jg1QUcC-xlLzzg5LdGzv8fek';
 const ADMIN_PASSWORD = 'nexus2026';
-const STORAGE_BUCKET = 'event-images';
+const STORAGE_BUCKET = 'event-images'; // change to your bucket name if different
 
-// Two separate clients
-const sb    = supabase.createClient(EVENTS_URL, EVENTS_ANON);  // for events table
-const sbSub = supabase.createClient(SUBS_URL, SUBS_ANON);      // for submissions table
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let events = [], submissions = [], filteredSubs = [], editingId = null, deletingId = null;
 let currentImgTab = 'url', uploadedImageUrl = null;
 let activeFilter = 'all', activeSearch = '';
@@ -859,7 +877,7 @@ async function loadSubmissions() {
     const grid = document.getElementById('sub-grid');
 
     // Try to load from 'submissions' table. Adapt column names to whatever you've set up.
-    const { data, error } = await sbSub.from('submissions').select('*').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('submissions').select('*').order('created_at', { ascending: false });
 
     if (error) {
         grid.innerHTML = `<div style="padding:60px;text-align:center;color:var(--text3);">
@@ -1025,7 +1043,7 @@ function openSubDetail(id) {
 }
 
 async function updateSubStatus(id, status, silent = false) {
-    const { error } = await sbSub.from('submissions').update({ status }).eq('id', id);
+    const { error } = await sb.from('submissions').update({ status }).eq('id', id);
     if (error) { if (!silent) toast('Update failed: ' + error.message, 'err'); return; }
     const sub = submissions.find(s => s.id === id);
     if (sub) sub.status = status;
@@ -1036,7 +1054,7 @@ async function updateSubStatus(id, status, silent = false) {
 
 async function saveNote(id) {
     const note = document.getElementById('sub-note-' + id)?.value || '';
-    const { error } = await sbSub.from('submissions').update({ notes: note }).eq('id', id);
+    const { error } = await sb.from('submissions').update({ notes: note }).eq('id', id);
     if (error) { toast('Save failed: ' + error.message, 'err'); return; }
     const sub = submissions.find(s => s.id === id);
     if (sub) sub.notes = note;
@@ -1045,7 +1063,7 @@ async function saveNote(id) {
 
 async function deleteSubmission(id) {
     if (!confirm('Delete this submission? This cannot be undone.')) return;
-    const { error } = await sbSub.from('submissions').delete().eq('id', id);
+    const { error } = await sb.from('submissions').delete().eq('id', id);
     if (error) { toast('Delete failed: ' + error.message, 'err'); return; }
     submissions = submissions.filter(s => s.id !== id);
     document.getElementById('sub-overlay').classList.remove('open');
