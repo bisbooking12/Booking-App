@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS — Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800;900&family=Barlow+Condensed:wght@600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <style>
+        :root {
+            --neon: #C8FF00;
+            --neon2: #D8FF33;
+            --neon-dim: rgba(200, 255, 0, 0.1);
+            --neon-glow: rgba(200, 255, 0, 0.22);
+            --bg: #090909;
+            --bg2: #101010;
+            --bg3: #161616;
+            --bg4: #1C1C1C;
+            --border: rgba(255, 255, 255, 0.06);
+            --border2: rgba(255, 255, 255, 0.11);
+            --border3: rgba(255, 255, 255, 0.18);
+            --text: #F2F2F2;
+            --text2: #7A7A7A;
+            --text3: #484848;
+            --white: #FFFFFF;
+            --red: #FF4444;
+            --red-dim: rgba(255, 68, 68, 0.1);
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 360px;
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            background: var(--bg2);
+            padding: 40px 36px;
+        }
+
+        .login-logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .login-logo span {
+            color: var(--neon);
+        }
+
+        .login-sub {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 32px;
+        }
+
+        .login-label {
+            display: block;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text3);
+            margin-bottom: 8px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            font-size: .9rem;
+            outline: none;
+            transition: border-color .15s;
+            margin-bottom: 14px;
+        }
+
+        .login-input:focus {
+            border-color: rgba(200, 255, 0, .4);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--neon);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Barlow', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .15s;
+            margin-top: 4px;
+        }
+
+        .login-btn:hover {
+            background: var(--neon2);
+        }
+
+        .login-err {
+            font-size: .78rem;
+            color: var(--red);
+            margin-top: 10px;
+            display: none;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 58px;
+            background: rgba(9, 9, 9, .96);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .nav-logo span {
+            color: var(--neon);
+        }
+
+        .nav-badge {
+            padding: 3px 10px;
+            background: var(--neon-dim);
+            border: 1px solid rgba(200, 255, 0, .2);
+            border-radius: 2px;
+            font-size: .62rem;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--neon);
+            margin-left: 12px;
+        }
+
+        .nav-r {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-live {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text2);
+        }
+
+        .nav-live strong {
+            color: var(--neon);
+        }
+
+        .btn-logout {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--border2);
+            border-radius: 3px;
+            color: var(--text3);
+            font-family: 'Barlow', sans-serif;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .btn-logout:hover {
+            color: var(--red);
+            border-color: rgba(255, 68, 68, .3);
+        }
+
+        main {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-l {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toolbar-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .toolbar-hint {
+            font-size: .75rem;
+            color: var(--text3);
+            font-weight: 500;
+        }
+
+        .toolbar-hint strong {
+            color: var(--text2);
+        }
+
+        .btn-add {
+            padding: 10px 22px;
+            background: var(--neon);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Barlow', sans-serif;
+            font-size: .8rem;
+            font-weight: 800;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-add:hover {
+            background: var(--neon2);
+            box-shadow: 0 0 22px var(--neon-glow);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            padding: 12px 20px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 4px;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            color: var(--text);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all .25s;
+            pointer-events: none;
+            z-index: 9000;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #toast.ok {
+            border-color: rgba(34, 197, 94, .4);
+            color: var(--green);
+        }
+
+        #toast.err {
+            border-color: rgba(255, 68, 68, .4);
+            color: var(--red);
+        }
+
+        .tbl-wrap {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: var(--bg3);
+            padding: 11px 16px;
+            text-align: left;
+            font-size: .63rem;
+            font-weight: 800;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--text3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        thead th:first-child {
+            width: 44px;
+        }
+
+        thead th.th-r {
+            text-align: right;
+        }
+
+        tbody tr {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            transition: background .15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--bg3);
+        }
+
+        tbody tr.sortable-ghost {
+            opacity: .3;
+        }
+
+        tbody tr.sortable-chosen {
+            background: var(--bg4) !important;
+        }
+
+        td {
+            padding: 13px 16px;
+            vertical-align: middle;
+        }
+
+        .td-drag {
+            color: var(--text3);
+            cursor: grab;
+            font-size: 1rem;
+            user-select: none;
+            text-align: center;
+        }
+
+        .td-drag:active {
+            cursor: grabbing;
+        }
+
+        .ev-thumb {
+            width: 42px;
+            height: 42px;
+            border-radius: 3px;
+            object-fit: cover;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+        }
+
+        .ev-name {
+            font-size: .9rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 2px;
+        }
+
+        .ev-org {
+            font-size: .72rem;
+            color: var(--text3);
+        }
+
+        .ev-loc {
+            font-size: .75rem;
+            color: var(--text2);
+        }
+
+        .tag-pill {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 2px;
+            font-size: .6rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .tag-fest {
+            background: rgba(200, 255, 0, .12);
+            color: #C8FF00;
+        }
+
+        .tag-music {
+            background: rgba(255, 181, 71, .13);
+            color: #FFB547;
+        }
+
+        .tag-tech {
+            background: rgba(59, 139, 255, .13);
+            color: #5B9FFF;
+        }
+
+        .tag-art {
+            background: rgba(255, 100, 138, .13);
+            color: #FF6B8A;
+        }
+
+        .tag-food {
+            background: rgba(255, 140, 80, .13);
+            color: #FF9060;
+        }
+
+        .tag-fashion {
+            background: rgba(180, 140, 255, .13);
+            color: #B48CFF;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 2px;
+            font-size: .62rem;
+            font-weight: 800;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+        }
+
+        .status-live {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .status-draft {
+            background: var(--bg4);
+            color: var(--text3);
+            border: 1px solid var(--border);
+        }
+
+        .status-cd {
+            background: var(--neon-dim);
+            color: var(--neon);
+            border: 1px solid rgba(200, 255, 0, .2);
+        }
+
+        .td-r {
+            text-align: right;
+        }
+
+        .td-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .btn-ic {
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            border: 1px solid var(--border2);
+            background: transparent;
+            color: var(--text2);
+            font-size: .8rem;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-ic:hover {
+            color: var(--white);
+            border-color: var(--border3);
+        }
+
+        .btn-ic.del:hover {
+            color: var(--red);
+            border-color: rgba(255, 68, 68, .3);
+            background: var(--red-dim);
+        }
+
+        .btn-ic.cd-on {
+            color: var(--neon);
+            border-color: rgba(200, 255, 0, .3);
+            background: var(--neon-dim);
+        }
+
+        .seats-hot {
+            color: var(--red);
+            font-weight: 800;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .72);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            width: 100%;
+            max-width: 660px;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 28px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg2);
+            z-index: 2;
+        }
+
+        .modal-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 3px;
+            border: 1px solid var(--border2);
+            background: transparent;
+            color: var(--text2);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--red);
+            border-color: rgba(255, 68, 68, .3);
+        }
+
+        .modal-body {
+            padding: 28px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field.full {
+            grid-column: span 2;
+        }
+
+        .field label {
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--text3);
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            padding: 10px 13px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: 'Barlow', sans-serif;
+            font-size: .88rem;
+            outline: none;
+            transition: border-color .15s;
+            width: 100%;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: rgba(200, 255, 0, .4);
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .field select option {
+            background: var(--bg3);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--bg4);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            transition: .2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            top: 2px;
+            background: var(--text3);
+            border-radius: 50%;
+            transition: .2s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--neon-dim);
+            border-color: rgba(200, 255, 0, .4);
+        }
+
+        .toggle input:checked+.toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--neon);
+        }
+
+        .toggle-lbl {
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--text2);
+        }
+
+        .modal-ft {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 20px 28px;
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+            background: var(--bg2);
+        }
+
+        .btn-save {
+            padding: 10px 24px;
+            background: var(--neon);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Barlow', sans-serif;
+            font-size: .8rem;
+            font-weight: 800;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .btn-save:hover {
+            background: var(--neon2);
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border2);
+            border-radius: 3px;
+            color: var(--text2);
+            font-family: 'Barlow', sans-serif;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .btn-cancel:hover {
+            color: var(--white);
+            border-color: var(--border3);
+        }
+
+        #del-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .72);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #del-overlay.open {
+            display: flex;
+        }
+
+        .del-modal {
+            background: var(--bg2);
+            border: 1px solid rgba(255, 68, 68, .2);
+            border-radius: 6px;
+            width: 360px;
+            padding: 32px;
+        }
+
+        .del-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        .del-desc {
+            font-size: .84rem;
+            color: var(--text2);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .del-name {
+            color: var(--white);
+            font-weight: 700;
+        }
+
+        .del-acts {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-del {
+            padding: 10px 22px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Barlow', sans-serif;
+            font-size: .8rem;
+            font-weight: 800;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .btn-del:hover {
+            background: #ff2222;
+        }
+
+        .empty {
+            padding: 80px 40px;
+            text-align: center;
+            color: var(--text3);
+        }
+
+        .empty-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: .3;
+        }
+
+        .empty-lbl {
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .loading {
+            padding: 60px 40px;
+            text-align: center;
+            color: var(--text3);
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .img-preview {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            margin-top: 6px;
+            display: none;
+            background: var(--bg4);
+        }
+
+        .section-label {
+            grid-column: span 2;
+            font-size: .62rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--neon);
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="login-logo">NEX<span>US</span></div>
+            <div class="login-sub">Admin Dashboard</div>
+            <label class="login-label" for="pw-input">Password</label>
+            <input class="login-input" type="password" id="pw-input" placeholder="Enter admin password"
+                autocomplete="current-password">
+            <button class="login-btn" onclick="tryLogin()">Sign In →</button>
+            <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+        </div>
+    </div>
+
+    <nav>
+        <div style="display:flex;align-items:center;">
+            <div class="nav-logo">NEX<span>US</span></div>
+            <div class="nav-badge">Admin</div>
+        </div>
+        <div class="nav-r">
+            <div class="nav-live">Live events: <strong id="live-count">—</strong></div>
+            <a href="index.html" target="_blank" style="text-decoration:none;">
+                <button class="btn-logout" style="color:var(--text2);">View Site ↗</button>
+            </a>
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="toolbar">
+            <div class="toolbar-l">
+                <div class="toolbar-title">Event Manager</div>
+                <div class="toolbar-hint"><strong>Drag rows</strong> to reorder · Changes save automatically</div>
+            </div>
+            <button class="btn-add" onclick="openAdd()">
+                <span style="font-size:1.1rem;line-height:1;">+</span> Add Event
+            </button>
+        </div>
+
+        <div class="tbl-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Event</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                        <th>Tag</th>
+                        <th>Status</th>
+                        <th class="th-r">Seats</th>
+                        <th class="th-r">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ev-tbody">
+                    <tr>
+                        <td colspan="8">
+                            <div class="loading">Loading events…</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="overlay">
+        <div class="modal">
+            <div class="modal-hd">
+                <div class="modal-title" id="modal-title">Add Event</div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="section-label">Basic Info</div>
+                <div class="field full">
+                    <label>Event Name</label>
+                    <input type="text" id="f-name" placeholder="e.g. Aurora Sound">
+                </div>
+                <div class="field">
+                    <label>Organizer</label>
+                    <input type="text" id="f-organizer" placeholder="e.g. Nordic Live">
+                </div>
+                <div class="field">
+                    <label>Organizer Initials</label>
+                    <input type="text" id="f-initials" placeholder="e.g. NL" maxlength="2">
+                </div>
+                <div class="field full">
+                    <label>Description</label>
+                    <textarea id="f-desc" placeholder="Short event description…"></textarea>
+                </div>
+
+                <div class="section-label">Date & Location</div>
+                <div class="field">
+                    <label>Day</label>
+                    <input type="text" id="f-day" placeholder="e.g. 14" maxlength="2">
+                </div>
+                <div class="field">
+                    <label>Month</label>
+                    <select id="f-month">
+                        <option>Jan</option>
+                        <option>Feb</option>
+                        <option>Mar</option>
+                        <option>Apr</option>
+                        <option>May</option>
+                        <option>Jun</option>
+                        <option>Jul</option>
+                        <option>Aug</option>
+                        <option>Sep</option>
+                        <option>Oct</option>
+                        <option>Nov</option>
+                        <option>Dec</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Year</label>
+                    <input type="text" id="f-year" placeholder="2026" maxlength="4">
+                </div>
+                <div class="field">
+                    <label>Location</label>
+                    <input type="text" id="f-location" placeholder="e.g. Berlin, Germany">
+                </div>
+
+                <div class="section-label">Category & Tickets</div>
+                <div class="field">
+                    <label>Tag</label>
+                    <select id="f-tag">
+                        <option value="Festival|tag-fest">Festival</option>
+                        <option value="Music|tag-music">Music</option>
+                        <option value="Tech|tag-tech">Tech</option>
+                        <option value="Art|tag-art">Art</option>
+                        <option value="Food|tag-food">Food</option>
+                        <option value="Fashion|tag-fashion">Fashion</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Seats Remaining</label>
+                    <input type="number" id="f-seats" placeholder="100" min="0">
+                </div>
+
+                <div class="section-label">Media & Links</div>
+                <div class="field full">
+                    <label>Image URL</label>
+                    <input type="url" id="f-img" placeholder="https://…" oninput="previewImg(this.value)">
+                    <img id="img-preview" class="img-preview" alt="preview">
+                </div>
+                <div class="field full">
+                    <label>Event Page URL (where card clicks go)</label>
+                    <input type="url" id="f-url" placeholder="https://youreventpage.com">
+                </div>
+
+                <div class="section-label">Settings</div>
+                <div class="field">
+                    <div class="toggle-row">
+                        <label class="toggle"><input type="checkbox" id="f-live" checked><span
+                                class="toggle-slider"></span></label>
+                        <span class="toggle-lbl">Published (visible on site)</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="toggle-row">
+                        <label class="toggle"><input type="checkbox" id="f-hot"><span
+                                class="toggle-slider"></span></label>
+                        <span class="toggle-lbl">Mark as 🔥 Hot</span>
+                    </div>
+                </div>
+                <div class="field full">
+                    <div class="toggle-row">
+                        <label class="toggle"><input type="checkbox" id="f-cd"><span
+                                class="toggle-slider"></span></label>
+                        <span class="toggle-lbl">Use for Countdown Timer</span>
+                    </div>
+                </div>
+                <div id="cd-fields" style="grid-column:span 2;display:none;grid-template-columns:1fr 1fr;gap:18px;">
+                    <div class="field">
+                        <label>Countdown Date & Time</label>
+                        <input type="datetime-local" id="f-cdtime">
+                    </div>
+                    <div class="field">
+                        <label>Venue Name</label>
+                        <input type="text" id="f-cdvenue" placeholder="e.g. Arena Berlin">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-ft">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" onclick="saveEvent()">Save Event →</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="del-overlay">
+        <div class="del-modal">
+            <div class="del-title">Delete Event</div>
+            <div class="del-desc">Are you sure you want to delete <span class="del-name" id="del-name-lbl"></span>? This
+                cannot be undone.</div>
+            <div class="del-acts">
+                <button class="btn-cancel" onclick="closeDelModal()">Cancel</button>
+                <button class="btn-del" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://cswutrwcgrqyzybtghzq.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd3V0cndjZ3JxeXp5YnRnaHpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MjgxMzcsImV4cCI6MjA5MjAwNDEzN30.jzDvpEEYeBg9eqvgj1Pb5Y7WNtmRM8fD9sB8wL3r6lQ';
+        const ADMIN_PASSWORD = 'nexus2026';
+
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+        let events = [], editingId = null, deletingId = null;
+
+        function tryLogin() {
+            const pw = document.getElementById('pw-input').value;
+            if (pw === ADMIN_PASSWORD) {
+                sessionStorage.setItem('nx_auth', '1');
+                document.getElementById('login-screen').style.display = 'none';
+                loadEvents();
+            } else {
+                document.getElementById('login-err').style.display = 'block';
+            }
+        }
+        document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+        function logout() { sessionStorage.removeItem('nx_auth'); location.reload(); }
+        if (sessionStorage.getItem('nx_auth') === '1') {
+            document.getElementById('login-screen').style.display = 'none';
+            loadEvents();
+        }
+
+        async function loadEvents() {
+            const { data, error } = await sb.from('events').select('*').order('sort_order');
+            if (error) { toast('Failed to load: ' + error.message, 'err'); return; }
+            events = data || [];
+            renderTable();
+            document.getElementById('live-count').textContent = events.filter(e => e.is_live).length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('ev-tbody');
+            if (!events.length) {
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">◎</div><div class="empty-lbl">No events yet — add one above</div></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = events.map(e => `
+    <tr data-id="${e.id}">
+      <td class="td-drag" title="Drag to reorder">⠿</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img class="ev-thumb" src="${e.image_url}" alt="" onerror="this.style.display='none'">
+          <div><div class="ev-name">${e.name}</div><div class="ev-org">${e.organizer}</div></div>
+        </div>
+      </td>
+      <td class="ev-loc">${e.location}</td>
+      <td style="font-size:.8rem;color:var(--text2);font-weight:600;">${e.day} ${e.month} ${e.year || ''}</td>
+      <td><span class="tag-pill ${e.tag_class}">${e.tag}</span></td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <span class="status-pill ${e.is_live ? 'status-live' : 'status-draft'}">${e.is_live ? '● Live' : '○ Draft'}</span>
+          ${e.is_countdown_target ? '<span class="status-pill status-cd">⏱ Countdown</span>' : ''}
+        </div>
+      </td>
+      <td class="td-r" style="font-size:.82rem;font-weight:700;"><span class="${e.is_hot ? 'seats-hot' : ''}">${e.seats}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn-ic" onclick="toggleLive('${e.id}',${e.is_live})" title="${e.is_live ? 'Unpublish' : 'Publish'}">${e.is_live ? '◎' : '●'}</button>
+          <button class="btn-ic ${e.is_countdown_target ? 'cd-on' : ''}" onclick="setCountdown('${e.id}',${e.is_countdown_target})" title="Set as Countdown">⏱</button>
+          <button class="btn-ic" onclick="openEdit('${e.id}')" title="Edit">✎</button>
+          <button class="btn-ic del" onclick="openDelete('${e.id}')" title="Delete">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+            Sortable.create(tbody, {
+                animation: 180, handle: '.td-drag', ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+                onEnd: async () => {
+                    const rows = [...tbody.querySelectorAll('tr[data-id]')];
+                    const updates = rows.map((r, i) => ({ id: r.dataset.id, sort_order: i }));
+                    events = updates.map(u => ({ ...events.find(e => e.id === u.id), sort_order: u.sort_order })).sort((a, b) => a.sort_order - b.sort_order);
+                    await Promise.all(updates.map(u => sb.from('events').update({ sort_order: u.sort_order }).eq('id', u.id)));
+                    toast('Order saved ✓', 'ok');
+                }
+            });
+        }
+
+        async function toggleLive(id, cur) {
+            const { error } = await sb.from('events').update({ is_live: !cur }).eq('id', id);
+            if (error) { toast('Error: ' + error.message, 'err'); return; }
+            await loadEvents();
+            toast(cur ? 'Event unpublished' : 'Event published ✓', 'ok');
+        }
+
+        async function setCountdown(id, isCur) {
+            await sb.from('events').update({ is_countdown_target: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+            if (!isCur) await sb.from('events').update({ is_countdown_target: true }).eq('id', id);
+            await loadEvents();
+            toast(isCur ? 'Countdown removed' : 'Countdown event set ✓', 'ok');
+        }
+
+        function previewImg(url) {
+            const p = document.getElementById('img-preview');
+            if (url) { p.src = url; p.style.display = 'block'; } else { p.style.display = 'none'; }
+        }
+
+        document.getElementById('f-cd').addEventListener('change', function () {
+            document.getElementById('cd-fields').style.display = this.checked ? 'grid' : 'none';
+        });
+
+        function openAdd() {
+            editingId = null;
+            document.getElementById('modal-title').textContent = 'Add Event';
+            clearForm();
+            document.getElementById('overlay').classList.add('open');
+        }
+
+        function openEdit(id) {
+            editingId = id;
+            const e = events.find(x => x.id === id);
+            document.getElementById('modal-title').textContent = 'Edit Event';
+            document.getElementById('f-name').value = e.name;
+            document.getElementById('f-organizer').value = e.organizer;
+            document.getElementById('f-initials').value = e.organizer_initials;
+            document.getElementById('f-desc').value = e.description;
+            document.getElementById('f-day').value = e.day;
+            document.getElementById('f-month').value = e.month;
+            document.getElementById('f-year').value = e.year || '2026';
+            document.getElementById('f-location').value = e.location;
+            const tagOpt = [...document.getElementById('f-tag').options].find(o => o.value.startsWith(e.tag + '|'));
+            if (tagOpt) document.getElementById('f-tag').value = tagOpt.value;
+            document.getElementById('f-seats').value = e.seats;
+            document.getElementById('f-img').value = e.image_url;
+            document.getElementById('f-url').value = e.event_url || '';
+            document.getElementById('f-live').checked = e.is_live;
+            document.getElementById('f-hot').checked = e.is_hot;
+            document.getElementById('f-cd').checked = e.is_countdown_target;
+            document.getElementById('cd-fields').style.display = e.is_countdown_target ? 'grid' : 'none';
+            if (e.countdown_datetime) document.getElementById('f-cdtime').value = e.countdown_datetime.slice(0, 16);
+            document.getElementById('f-cdvenue').value = e.countdown_venue || '';
+            previewImg(e.image_url);
+            document.getElementById('overlay').classList.add('open');
+        }
+
+        function clearForm() {
+            ['f-name', 'f-organizer', 'f-initials', 'f-desc', 'f-day', 'f-location', 'f-seats', 'f-img', 'f-url', 'f-cdtime', 'f-cdvenue'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('f-year').value = '2026';
+            document.getElementById('f-live').checked = true;
+            document.getElementById('f-hot').checked = false;
+            document.getElementById('f-cd').checked = false;
+            document.getElementById('cd-fields').style.display = 'none';
+            document.getElementById('img-preview').style.display = 'none';
+        }
+
+        function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+        async function saveEvent() {
+            const tagVal = document.getElementById('f-tag').value.split('|');
+            const isCd = document.getElementById('f-cd').checked;
+            const payload = {
+                name: document.getElementById('f-name').value.trim(),
+                organizer: document.getElementById('f-organizer').value.trim(),
+                organizer_initials: document.getElementById('f-initials').value.trim().toUpperCase(),
+                description: document.getElementById('f-desc').value.trim(),
+                day: document.getElementById('f-day').value.trim(),
+                month: document.getElementById('f-month').value,
+                year: document.getElementById('f-year').value.trim(),
+                location: document.getElementById('f-location').value.trim(),
+                tag: tagVal[0],
+                tag_class: tagVal[1],
+                seats: parseInt(document.getElementById('f-seats').value) || 0,
+                image_url: document.getElementById('f-img').value.trim(),
+                event_url: document.getElementById('f-url').value.trim() || '#',
+                is_live: document.getElementById('f-live').checked,
+                is_hot: document.getElementById('f-hot').checked,
+                is_countdown_target: isCd,
+                countdown_datetime: isCd && document.getElementById('f-cdtime').value ? new Date(document.getElementById('f-cdtime').value).toISOString() : null,
+                countdown_venue: isCd ? document.getElementById('f-cdvenue').value.trim() : null,
+            };
+            if (!payload.name) { toast('Event name is required', 'err'); return; }
+            if (isCd) await sb.from('events').update({ is_countdown_target: false }).neq('id', editingId || '00000000-0000-0000-0000-000000000000');
+            let error;
+            if (editingId) {
+                ({ error } = await sb.from('events').update(payload).eq('id', editingId));
+            } else {
+                payload.sort_order = events.length;
+                ({ error } = await sb.from('events').insert(payload));
+            }
+            if (error) { toast('Save failed: ' + error.message, 'err'); return; }
+            closeModal();
+            await loadEvents();
+            toast(editingId ? 'Event updated ✓' : 'Event added ✓', 'ok');
+        }
+
+        function openDelete(id) {
+            deletingId = id;
+            const e = events.find(x => x.id === id);
+            document.getElementById('del-name-lbl').textContent = e.name;
+            document.getElementById('del-overlay').classList.add('open');
+        }
+        function closeDelModal() { document.getElementById('del-overlay').classList.remove('open'); deletingId = null; }
+
+        async function confirmDelete() {
+            const { error } = await sb.from('events').delete().eq('id', deletingId);
+            if (error) { toast('Delete failed: ' + error.message, 'err'); return; }
+            closeDelModal();
+            await loadEvents();
+            toast('Event deleted', 'ok');
+        }
+
+        let toastTimer;
+        function toast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'show ' + type;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+        }
+
+        document.getElementById('overlay').addEventListener('click', e => { if (e.target === document.getElementById('overlay')) closeModal(); });
+        document.getElementById('del-overlay').addEventListener('click', e => { if (e.target === document.getElementById('del-overlay')) closeDelModal(); });
+    </script>
+</body>
+
+</html>
