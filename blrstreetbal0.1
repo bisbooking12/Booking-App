@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLRSTREETBALL — Summer Series 2025</title>
+<style>
+  /* ── CORE ENGINE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #FF4D00;
+    --orange-glow: rgba(255, 77, 0, 0.4);
+    --dark: #0A0A0A;
+    --dark-alt: #121212;
+    --cream: #F2EFE8;
+    --text-muted: #777;
+    --border: rgba(255, 77, 0, 0.25);
+    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--dark);
+    color: var(--cream);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── UTILITIES ── */
+  .container { max-width: 1300px; margin: 0 auto; padding: 0 30px; }
+  .section { padding: 100px 0; }
+  .orange { color: var(--orange); }
+  .uppercase { text-transform: uppercase; }
+  .italic { font-style: italic; }
+  .bold { font-weight: 900; }
+
+  /* ── HEADINGS ── */
+  h1, h2, h3 { 
+    font-family: "Arial Black", "Impact", sans-serif; 
+    text-transform: uppercase; 
+    line-height: 0.85;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: clamp(4rem, 15vw, 12rem); letter-spacing: -4px; }
+  h2 { font-size: clamp(3rem, 8vw, 6rem); letter-spacing: -2px; }
+  h3 { font-size: 2.2rem; letter-spacing: -1px; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: rgba(10, 10, 10, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    backdrop-filter: blur(10px);
+  }
+  .brand { 
+    font-family: "Arial Black", sans-serif; 
+    font-size: 1.8rem; 
+    letter-spacing: -1px; 
+    color: var(--cream);
+    text-decoration: none;
+  }
+  .brand span { color: var(--orange); }
+  
+  .status-pill { 
+    font-family: monospace; font-size: 0.7rem; color: var(--orange); 
+    background: rgba(255, 77, 0, 0.1); padding: 8px 16px; border-radius: 4px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    padding-top: 140px;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 0; right: 0; width: 60%; height: 100%;
+    background: radial-gradient(circle at 70% 30%, rgba(255, 77, 0, 0.15) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.4fr 0.6fr; gap: 60px; align-items: flex-end; }
+  .hero-label { font-family: monospace; color: var(--orange); letter-spacing: 6px; margin-bottom: 20px; display: block; font-size: 0.9rem; }
+  .hero-tagline { font-size: 1.8rem; font-weight: 700; margin-bottom: 40px; line-height: 1.2; border-left: 4px solid var(--orange); padding-left: 25px; }
+  
+  .hero-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; border-top: 1px solid var(--border); padding-top: 30px; }
+  .meta-key { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+  .meta-val { font-weight: 700; font-size: 1.3rem; color: var(--cream); }
+
+  /* ── MARQUEE ── */
+  .marquee-wrap { 
+    background: var(--orange); color: var(--dark); padding: 20px 0; margin: 80px 0;
+    overflow: hidden; white-space: nowrap; transform: rotate(-1.5deg) scale(1.05);
+    box-shadow: 0 10px 30px rgba(255, 77, 0, 0.3);
+  }
+  .marquee-content { display: inline-block; animation: marquee 35s linear infinite; font-family: "Arial Black", sans-serif; font-size: 2.5rem; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ── COUNTDOWN ── */
+  .countdown { background: var(--dark-alt); text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .cd-grid { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 50px; }
+  .cd-box { 
+    background: rgba(255, 77, 0, 0.03); border: 1px solid var(--border); padding: 40px 30px; 
+    min-width: 160px; border-radius: 4px; transition: var(--transition);
+  }
+  .cd-box:hover { border-color: var(--orange); background: rgba(255, 77, 0, 0.08); transform: translateY(-10px); }
+  .cd-num { font-family: "Arial Black", sans-serif; font-size: 4.5rem; color: var(--orange); display: block; line-height: 1; text-shadow: 0 0 20px var(--orange-glow); }
+  .cd-lbl { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 15px; display: block; letter-spacing: 2px; }
+
+  /* ── REGISTER ── */
+  .reg-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .reg-card { 
+    padding: 80px 60px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    text-decoration: none; color: inherit; transition: var(--transition); position: relative; overflow: hidden;
+  }
+  .reg-card::after { content: '→'; position: absolute; bottom: 40px; right: 40px; font-size: 3rem; opacity: 0.1; transition: var(--transition); }
+  .reg-card:hover { background: var(--orange); color: var(--dark); }
+  .reg-card:hover::after { opacity: 1; transform: translateX(10px); }
+  .reg-card:last-child { border-right: none; }
+  .reg-badge { 
+    display: inline-block; padding: 6px 18px; border: 1px solid var(--orange); 
+    color: var(--orange); font-family: monospace; font-size: 0.8rem; border-radius: 4px; margin-bottom: 30px;
+  }
+  .reg-card:hover .reg-badge { border-color: var(--dark); color: var(--dark); }
+  .reg-price { font-family: "Arial Black", sans-serif; font-size: 3.5rem; margin-top: 40px; line-height: 1; }
+
+  /* ── FORMATS ── */
+  .formats { background: var(--dark-alt); }
+  .fmt-list { margin-top: 60px; }
+  .fmt-row { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 35px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition);
+  }
+  .fmt-row:hover { padding-left: 20px; color: var(--orange); }
+  .fmt-name { font-family: "Arial Black", sans-serif; font-size: 2.5rem; letter-spacing: -1px; }
+  .fmt-price { font-family: "Arial Black", sans-serif; font-size: 1.8rem; color: var(--orange); }
+
+  /* ── ABOUT ── */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; border-top: 1px solid var(--border); padding-top: 40px; }
+  .stat-num { font-family: "Arial Black", sans-serif; font-size: 3.5rem; color: var(--orange); line-height: 1; }
+  .stat-lbl { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .quote-box { 
+    background: linear-gradient(135deg, rgba(255, 77, 0, 0.1) 0%, transparent 100%); 
+    border: 1px solid var(--border); padding: 60px; border-radius: 4px; text-align: center;
+    position: relative;
+  }
+  .quote-box::before { content: '"'; position: absolute; top: 20px; left: 20px; font-size: 6rem; color: var(--orange); opacity: 0.2; font-family: serif; }
+  .quote-text { font-size: 2.2rem; font-weight: 900; font-style: italic; line-height: 1.2; color: var(--cream); }
+
+  /* ── VENUES ── */
+  .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; }
+  .venue-card { 
+    background: var(--dark-alt); border: 1px solid var(--border); padding: 50px; border-radius: 4px;
+    transition: var(--transition);
+  }
+  .venue-card:hover { border-color: var(--orange); background: rgba(255, 77, 0, 0.05); }
+  .venue-num { font-family: "Arial Black", sans-serif; font-size: 4rem; color: var(--orange); opacity: 0.15; line-height: 1; margin-bottom: 15px; }
+  .venue-name { font-family: "Arial Black", sans-serif; font-size: 2rem; margin-bottom: 20px; letter-spacing: -1px; }
+  .venue-info { color: var(--text-muted); font-size: 1.1rem; line-height: 1.7; }
+
+  /* ── FOOTER ── */
+  .footer { padding: 80px 40px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 40px; }
+  .footer-brand { font-family: "Arial Black", sans-serif; font-size: 2rem; letter-spacing: -1px; }
+  .footer-brand span { color: var(--orange); }
+  .footer-link a { color: var(--orange); text-decoration: none; font-family: monospace; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid transparent; transition: var(--transition); }
+  .footer-link a:hover { border-bottom-color: var(--orange); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1000px) {
+    .hero-grid, .reg-grid, .about-grid, .venue-grid { grid-template-columns: 1fr; }
+    .hero { padding-top: 120px; text-align: center; }
+    .hero-meta { text-align: left; }
+    h1 { font-size: 4.5rem; letter-spacing: -2px; }
+    .topbar { padding: 15px 20px; }
+    .reg-card { padding: 60px 30px; }
+    .stat-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-tagline { border-left: none; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="#" class="brand">BLR<span>STREETBALL</span></a>
+  <div class="status-pill"><div class="dot"></div> REGISTRATION OPEN</div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <span class="hero-label uppercase">India's First Street Football Community</span>
+        <h1>STREET<br><span class="orange italic">BALL.</span><br>BLR</h1>
+      </div>
+      <div>
+        <p class="hero-tagline italic">"No teams. No hiding. One court, one king — and we're turning it into a full-blown rave."</p>
+        <div class="hero-meta">
+          <div class="meta-item">
+            <div class="meta-key">Date</div>
+            <div class="meta-val">15 Aug 2025</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Venue</div>
+            <div class="meta-val">Depot 18, Jayamahal</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">City</div>
+            <div class="meta-val">Bengaluru</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Entry</div>
+            <div class="meta-val">From ₹150</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="marquee-wrap">
+    <div class="marquee-content">
+      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. • 
+      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. • 
+    </div>
+  </div>
+</section>
+
+<section class="countdown section">
+  <div class="container">
+    <span class="hero-label uppercase">Time Remaining</span>
+    <h2>SUMMER <span class="orange italic">SERIES</span> 2025</h2>
+    <div class="cd-grid">
+      <div class="cd-box"><span class="cd-num" id="cdD">00</span><span class="cd-lbl">Days</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdH">00</span><span class="cd-lbl">Hours</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdM">00</span><span class="cd-lbl">Mins</span></div>
+      <div class="cd-box"><span class="cd-num" id="cdS">00</span><span class="cd-lbl">Secs</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="reg-grid">
+  <a href="https://www.instagram.com/blrstreetball/" class="reg-card" target="_blank">
+    <span class="reg-badge">PLAYERS</span>
+    <h3>REGISTER AS A PLAYER</h3>
+    <p>Step onto the court. 1v1 battles or 2v2 squads — individual skill, raw talent, zero excuses. Bengaluru's most electric street football stage.</p>
+    <div class="reg-price">₹300</div>
+  </a>
+  <a href="https://www.instagram.com/blrstreetball/" class="reg-card" target="_blank">
+    <span class="reg-badge">SPECTATORS</span>
+    <h3>REGISTER AS ATTENDEE</h3>
+    <p>Come for the battles, stay for the rave. Live music, trash talk culture, and the best street football in India. Front-row to the chaos.</p>
+    <div class="reg-price">₹150</div>
+  </a>
+</div>
+
+<section class="formats section">
+  <div class="container">
+    <span class="hero-label uppercase">Event Formats</span>
+    <h2>HOW WE PLAY</h2>
+    <div class="fmt-list">
+      <div class="fmt-row">
+        <div class="fmt-name">1V1 BATTLE</div>
+        <div class="fmt-price">₹300</div>
+      </div>
+      <div class="fmt-row">
+        <div class="fmt-name">2V2 TOURNAMENT</div>
+        <div class="fmt-price">₹500</div>
+      </div>
+      <div class="fmt-row">
+        <div class="fmt-name">ATTENDEE PASS</div>
+        <div class="fmt-price">₹150</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about section">
+  <div class="container">
+    <div class="about-grid">
+      <div>
+        <span class="hero-label uppercase">About BLRSTREETBALL</span>
+        <h2>INDIA'S FIRST STREET FC</h2>
+        <p style="color: var(--text-muted); font-size: 1.2rem; margin-top: 25px; line-height: 1.8;">Breaking away from traditional team-based structures, BLRSTREETBALL puts individual skill and raw talent at the centre. No place to hide. No team to carry you. We take football off the pitch and into the streets, malls, and urban arenas of Bengaluru.</p>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-num">100+</div>
+            <div class="stat-lbl">Players</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">15+</div>
+            <div class="stat-lbl">Events</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">1</div>
+            <div class="stat-lbl">Champion</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="quote-box">
+          <p class="quote-text">"One court. One king. We're not stopping at the game — we're turning it into a full-blown rave."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="venues section" style="background: var(--dark-alt);">
+  <div class="container">
+    <span class="hero-label uppercase">Where We Play</span>
+    <h2>OUR COURTS</h2>
+    <div class="venue-grid">
+      <div class="venue-card">
+        <div class="venue-num">01</div>
+        <h3 class="venue-name">DEPOT 18, JAYAMAHAL</h3>
+        <p class="venue-info">Premium multi-sport arena hosting football, padel, and pickleball. Home to our Summer Series and flagship 2v2 tournaments.</p>
+      </div>
+      <div class="venue-card">
+        <div class="venue-num">02</div>
+        <h3 class="venue-name">URBAN MALLS & ARENAS</h3>
+        <p class="venue-info">We take street football to where the people are — high-visibility public spaces that turn competition into spectacle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-brand">BLR<span>STREETBALL</span></div>
+  <div class="meta-key">BENGALURU, INDIA • SUMMER 2025</div>
+  <div class="footer-link">LISTED ON <a href="https://nexus-silk-delta.vercel.app" target="_blank">NEXUS PORTAL</a></div>
+</footer>
+
+<script>
+  // Countdown Logic
+  const target = new Date('2025-08-15T18:00:00+05:30').getTime();
+  function updateCD() {
+    const now = new Date().getTime();
+    const diff = target - now;
+    if (diff < 0) return;
+    document.getElementById('cdD').innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+    document.getElementById('cdH').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+    document.getElementById('cdM').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+    document.getElementById('cdS').innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+  }
+  setInterval(updateCD, 1000);
+  updateCD();
+</script>
+
+</body>
+</html>
