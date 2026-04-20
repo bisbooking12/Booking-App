@@ -1000,28 +1000,22 @@ async function saveUser() {
 
     btn.textContent='Creating…'; btn.disabled=true;
 
-    // Step 1: Create the auth user via Supabase Admin API
+    // Step 1: Create the auth user via Edge Function (uses service role securely)
     const {data:{session}} = await sb.auth.getSession();
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    const res = await fetch('https://dxuraqjrarpqarratjbz.supabase.co/functions/v1/create-manager', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON,
             'Authorization': 'Bearer ' + session.access_token
         },
-        body: JSON.stringify({
-            email,
-            password: pw,
-            email_confirm: true,
-            user_metadata: { name, role }
-        })
+        body: JSON.stringify({ action: 'create', email, password: pw, name, role })
     });
 
     const userData = await res.json();
     btn.textContent='Create Account →'; btn.disabled=false;
 
-    if (!res.ok) {
-        toast('Failed: ' + (userData.msg || userData.message || userData.error_description || JSON.stringify(userData)), 'err');
+    if (!res.ok || userData.error) {
+        toast('Failed: ' + (userData.error || 'Unknown error'), 'err');
         return;
     }
 
@@ -1088,18 +1082,14 @@ async function updateUser() {
 
     // Update password if provided
     if (pw && pw.length >= 6) {
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${editingUserId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': SUPABASE_ANON,
-                'Authorization': 'Bearer ' + session.access_token
-            },
-            body: JSON.stringify({ password: pw })
+        const res = await fetch('https://dxuraqjrarpqarratjbz.supabase.co/functions/v1/create-manager', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+            body: JSON.stringify({ action: 'update_password', userId: editingUserId, newPassword: pw })
         });
-        if (!res.ok) {
-            const d = await res.json();
-            toast('Password update failed: '+(d.msg||d.message||'error'),'err');
+        const d = await res.json();
+        if (!res.ok || d.error) {
+            toast('Password update failed: '+(d.error||'error'),'err');
             btn.textContent='Save Changes →'; btn.disabled=false;
             return;
         }
@@ -1131,10 +1121,11 @@ async function removeUser(userId){
 
     const {data:{session}} = await sb.auth.getSession();
 
-    // Delete from auth
-    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + session.access_token }
+    // Delete from auth via Edge Function
+    await fetch('https://dxuraqjrarpqarratjbz.supabase.co/functions/v1/create-manager', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ action: 'delete', userId })
     });
 
     // Delete profile and assignments
