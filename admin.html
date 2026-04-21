@@ -650,7 +650,18 @@ async function loadManagerView(userId) {
             <div class="mgr-notice-icon">✦</div>
             <div><div class="mgr-notice-title">Your event is managed by NEXUS</div><div class="mgr-notice-body">All changes to your event listing, design, and images are handled by the NEXUS team. To update seats, dates, or any details — contact your NEXUS manager directly.</div></div>
         </div>
+        <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+            <a href="verify.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:var(--neon);color:#000;border:none;border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;text-decoration:none;transition:all .15s;">📷 Open Ticket Scanner</a>
+            <a href="blrs.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-decoration:none;transition:all .15s;">🎟 View Registration Page</a>
+        </div>
+        <div id="mgr-tickets-section" style="margin-top:28px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:16px;">Registrations</div>
+            <div id="mgr-ticket-list"><div style="padding:40px;text-align:center;color:var(--text3);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Loading registrations…</div></div>
+        </div>
     `;
+
+    // Load ticket registrations
+    loadManagerTickets(ev.id);
 
     if (ev.is_countdown_target && ev.countdown_datetime) {
         if (mgrCdInterval) clearInterval(mgrCdInterval);
@@ -1134,6 +1145,63 @@ async function removeUser(userId){
 
     toast('Manager removed','ok');
     await loadUsers();
+}
+
+/* ── MANAGER TICKETS ── */
+async function loadManagerTickets(eventId) {
+    const { data, error } = await sb.from('tickets')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: false });
+
+    const el = document.getElementById('mgr-ticket-list');
+    if (!el) return;
+
+    if (error) { el.innerHTML = `<div style="padding:20px;color:var(--red);font-size:.78rem;">Error: ${error.message}</div>`; return; }
+    const tickets = data || [];
+
+    if (!tickets.length) {
+        el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">No registrations yet</div>`;
+        return;
+    }
+
+    const total = tickets.length;
+    const paid  = tickets.filter(t => t.status === 'paid').length;
+    const valid = tickets.filter(t => t.status === 'valid').length;
+
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px;">
+            <div style="background:var(--bg2);padding:16px;text-align:center;">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--white);">${total}</div>
+                <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:2px;">Registered</div>
+            </div>
+            <div style="background:var(--bg2);padding:16px;text-align:center;border-left:1px solid var(--border);">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--amber);">${paid}</div>
+                <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:2px;">Paid</div>
+            </div>
+            <div style="background:var(--bg2);padding:16px;text-align:center;border-left:1px solid var(--border);">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--green);">${valid}</div>
+                <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:2px;">Pending</div>
+            </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+            ${tickets.map(t => {
+                const statusColor = t.status==='paid'?'var(--amber)':t.status==='valid'?'var(--green)':'var(--text3)';
+                const statusLabel = t.status==='paid'?'💰 Paid':t.status==='valid'?'● Valid':'○ '+t.status;
+                const date = t.created_at ? new Date(t.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+                return \`<div style="background:var(--bg2);padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:.88rem;font-weight:800;color:var(--white);margin-bottom:2px;">\${t.attendee_name}</div>
+                        <div style="font-size:.72rem;color:var(--text3);">\${t.attendee_email} · \${t.attendee_phone||'—'}</div>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div style="font-size:.72rem;font-weight:800;color:\${statusColor};">\${statusLabel}</div>
+                        <div style="font-size:.65rem;color:var(--text3);margin-top:2px;">\${date}</div>
+                    </div>
+                </div>\`;
+            }).join('')}
+        </div>
+    `;
 }
 
 /* ── TOAST ── */
