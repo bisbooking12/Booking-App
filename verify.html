@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>NEXUS — Ticket Verify</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <style>
+        :root {
+            --neon:#C8FF00;--neon-dim:rgba(200,255,0,.1);--neon-glow:rgba(200,255,0,.22);
+            --bg:#090909;--bg2:#101010;--bg3:#161616;--bg4:#1C1C1C;
+            --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.11);
+            --text:#F2F2F2;--text2:#7A7A7A;--text3:#484848;--white:#fff;
+            --red:#FF4444;--red-dim:rgba(255,68,68,.1);
+            --green:#22c55e;--green-dim:rgba(34,197,94,.1);
+            --amber:#FFB547;--amber-dim:rgba(255,181,71,.1);
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html,body{height:100%;overflow:hidden;}
+        body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;}
+
+        /* LOGIN */
+        #login-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .login-box{width:100%;max-width:360px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);padding:36px 32px;position:relative;overflow:hidden;}
+        .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--neon);}
+        .login-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--white);margin-bottom:2px;}
+        .login-logo span{color:var(--neon);}
+        .login-sub{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:28px;}
+        .login-label{display:block;font-size:.65rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+        .login-input{width:100%;padding:11px 13px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.9rem;outline:none;transition:border-color .15s;margin-bottom:12px;}
+        .login-input:focus{border-color:rgba(200,255,0,.4);}
+        .login-btn{width:100%;padding:13px;background:var(--neon);color:#000;border:none;border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;}
+        .login-btn:disabled{opacity:.6;cursor:not-allowed;}
+        .login-err{font-size:.75rem;color:var(--red);margin-top:10px;display:none;}
+
+        /* TOP BAR */
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:rgba(9,9,9,.96);border-bottom:1px solid var(--border);flex-shrink:0;}
+        .topbar-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--white);}
+        .topbar-logo span{color:var(--neon);}
+        .topbar-event{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);}
+        .topbar-r{display:flex;align-items:center;gap:8px;}
+        .btn-sm{padding:5px 12px;background:transparent;border:1px solid var(--border2);border-radius:3px;color:var(--text3);font-family:'Barlow',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+        .btn-sm:hover{color:var(--red);border-color:rgba(255,68,68,.3);}
+
+        /* TABS */
+        .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+        .tab{flex:1;padding:13px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text3);font-family:'Barlow',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:-1px;}
+        .tab.active{color:var(--neon);border-bottom-color:var(--neon);}
+
+        /* CONTENT */
+        .content{flex:1;overflow-y:auto;overflow-x:hidden;}
+        .tab-page{display:none;height:100%;}
+        .tab-page.active{display:flex;flex-direction:column;}
+
+        /* SCANNER TAB */
+        .scanner-wrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px 16px;}
+        .scanner-box{position:relative;width:100%;max-width:320px;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#000;margin-bottom:20px;border:2px solid var(--border2);}
+        .scanner-box.scanning{border-color:var(--neon);box-shadow:0 0 20px var(--neon-glow);}
+        #video{width:100%;height:100%;object-fit:cover;}
+        #scan-canvas{display:none;}
+        .scan-overlay{position:absolute;inset:0;pointer-events:none;}
+        .scan-corner{position:absolute;width:24px;height:24px;border-color:var(--neon);border-style:solid;border-width:0;}
+        .sc-tl{top:12px;left:12px;border-top-width:3px;border-left-width:3px;border-radius:3px 0 0 0;}
+        .sc-tr{top:12px;right:12px;border-top-width:3px;border-right-width:3px;border-radius:0 3px 0 0;}
+        .sc-bl{bottom:12px;left:12px;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 3px;}
+        .sc-br{bottom:12px;right:12px;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 3px 0;}
+        .scan-line{position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,var(--neon),transparent);animation:scanline 2s linear infinite;display:none;}
+        .scanner-box.scanning .scan-line{display:block;}
+        @keyframes scanline{0%{top:12px;}100%{top:calc(100% - 12px);}}
+        .scanner-hint{font-size:.78rem;color:var(--text3);text-align:center;margin-bottom:16px;line-height:1.5;}
+        .btn-scan{width:100%;max-width:320px;padding:14px;background:var(--neon);color:#000;border:none;border-radius:3px;font-family:'Barlow',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-bottom:12px;}
+        .btn-scan:hover{background:#D8FF33;}
+        .btn-scan.stop{background:var(--bg3);color:var(--red);border:1px solid rgba(255,68,68,.3);}
+        .manual-wrap{width:100%;max-width:320px;}
+        .manual-label{font-size:.62rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:block;}
+        .manual-input-row{display:flex;gap:8px;}
+        .manual-input{flex:1;padding:10px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.9rem;outline:none;text-transform:uppercase;letter-spacing:.08em;}
+        .manual-input:focus{border-color:rgba(200,255,0,.4);}
+        .btn-check{padding:10px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;cursor:pointer;transition:all .15s;white-space:nowrap;}
+        .btn-check:hover{color:var(--white);border-color:var(--border3);}
+
+        /* RESULT CARD */
+        .result-card{width:100%;max-width:320px;border-radius:6px;padding:22px;margin-top:16px;display:none;}
+        .result-card.valid{background:var(--green-dim);border:1px solid rgba(34,197,94,.3);}
+        .result-card.used{background:var(--red-dim);border:1px solid rgba(255,68,68,.3);}
+        .result-card.invalid{background:var(--bg3);border:1px solid var(--border2);}
+        .result-card.paid{background:var(--amber-dim);border:1px solid rgba(255,181,71,.3);}
+        .result-icon{font-size:2rem;margin-bottom:10px;text-align:center;}
+        .result-status{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:900;text-transform:uppercase;text-align:center;margin-bottom:16px;}
+        .result-card.valid .result-status{color:var(--green);}
+        .result-card.used .result-status{color:var(--red);}
+        .result-card.invalid .result-status{color:var(--text3);}
+        .result-card.paid .result-status{color:var(--amber);}
+        .result-details{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+        .result-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+        .result-lbl{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+        .result-val{font-size:.84rem;color:var(--text);font-weight:600;text-align:right;}
+        .btn-mark-paid{width:100%;padding:13px;background:var(--neon);color:#000;border:none;border-radius:3px;font-family:'Barlow',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:4px;}
+        .btn-mark-paid:hover{background:#D8FF33;box-shadow:0 0 20px var(--neon-glow);}
+        .btn-scan-again{width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:3px;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .15s;margin-top:8px;}
+        .btn-scan-again:hover{color:var(--white);border-color:var(--border3);}
+
+        /* TICKETS LIST TAB */
+        .list-wrap{padding:16px;}
+        .list-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px;}
+        .list-stat{background:var(--bg2);padding:14px 12px;text-align:center;}
+        .list-stat-val{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:900;line-height:1;}
+        .list-stat-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:3px;}
+        .ticket-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+        .ticket-row{background:var(--bg2);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:background .15s;cursor:pointer;}
+        .ticket-row:hover{background:var(--bg3);}
+        .ticket-row-avatar{width:34px;height:34px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;color:var(--neon);flex-shrink:0;}
+        .ticket-row-info{flex:1;min-width:0;}
+        .ticket-row-name{font-size:.88rem;font-weight:800;color:var(--white);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .ticket-row-code{font-size:.65rem;font-weight:700;letter-spacing:.08em;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .ticket-status-pill{padding:3px 9px;border-radius:2px;font-size:.58rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;flex-shrink:0;}
+        .pill-valid{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+        .pill-used{background:var(--bg4);color:var(--text3);border:1px solid var(--border);}
+        .pill-paid{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,181,71,.25);}
+        .pill-cancelled{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,68,68,.25);}
+        .list-search{width:100%;padding:10px 13px;background:var(--bg2);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:'Barlow',sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;margin-bottom:12px;}
+        .list-search:focus{border-color:rgba(200,255,0,.35);}
+        .list-search::placeholder{color:var(--text3);}
+        .empty-list{padding:48px 20px;text-align:center;color:var(--text3);font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+    <div class="login-box">
+        <div class="login-logo">NEX<span>US</span></div>
+        <div class="login-sub">Ticket Verification</div>
+        <label class="login-label">Email</label>
+        <input class="login-input" type="email" id="v-email" placeholder="your@email.com" autocomplete="email">
+        <label class="login-label">Password</label>
+        <input class="login-input" type="password" id="v-pw" placeholder="••••••••" autocomplete="current-password" style="margin-bottom:0;">
+        <button class="login-btn" id="v-login-btn" onclick="doLogin()">Sign In →</button>
+        <div class="login-err" id="v-login-err"></div>
+    </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div>
+        <div class="topbar-logo">NEX<span>US</span></div>
+        <div class="topbar-event" id="topbar-event">Loading…</div>
+    </div>
+    <div class="topbar-r">
+        <div style="font-size:.68rem;color:var(--text3);" id="topbar-user"></div>
+        <button class="btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+    <button class="tab active" onclick="switchTab('scanner')">📷 &nbsp;Scan</button>
+    <button class="tab" onclick="switchTab('list')">🎟 &nbsp;All Tickets</button>
+</div>
+
+<!-- SCANNER TAB -->
+<div class="content">
+<div class="tab-page active" id="tab-scanner">
+    <div class="scanner-wrap">
+        <div class="scanner-box" id="scanner-box">
+            <video id="video" playsinline autoplay muted></video>
+            <canvas id="scan-canvas"></canvas>
+            <div class="scan-overlay">
+                <div class="scan-corner sc-tl"></div>
+                <div class="scan-corner sc-tr"></div>
+                <div class="scan-corner sc-bl"></div>
+                <div class="scan-corner sc-br"></div>
+                <div class="scan-line"></div>
+            </div>
+        </div>
+
+        <p class="scanner-hint">Point your camera at a NEXUS ticket QR code</p>
+        <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 &nbsp;Start Camera</button>
+        <button class="btn-scan stop" id="btn-stop-scan" onclick="stopScan()" style="display:none;">✕ &nbsp;Stop Camera</button>
+
+        <div style="width:100%;max-width:320px;display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <div style="font-size:.65rem;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;">or enter manually</div>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+
+        <div class="manual-wrap">
+            <label class="manual-label">Ticket Code</label>
+            <div class="manual-input-row">
+                <input class="manual-input" type="text" id="manual-code" placeholder="BLRS-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
+                <button class="btn-check" onclick="checkManual()">Check</button>
+            </div>
+        </div>
+
+        <div class="result-card" id="result-card">
+            <div class="result-icon" id="result-icon"></div>
+            <div class="result-status" id="result-status"></div>
+            <div class="result-details" id="result-details"></div>
+            <button class="btn-mark-paid" id="btn-mark-paid" onclick="markPaid()" style="display:none;">✓ &nbsp;Mark as Paid</button>
+            <button class="btn-scan-again" onclick="resetResult()">Scan Another →</button>
+        </div>
+    </div>
+</div>
+
+<!-- TICKETS LIST TAB -->
+<div class="tab-page" id="tab-list">
+    <div class="list-wrap">
+        <div class="list-stats">
+            <div class="list-stat"><div class="list-stat-val" id="ls-total" style="color:var(--white);">—</div><div class="list-stat-lbl">Total</div></div>
+            <div class="list-stat"><div class="list-stat-val" id="ls-paid" style="color:var(--amber);">—</div><div class="list-stat-lbl">Paid</div></div>
+            <div class="list-stat"><div class="list-stat-val" id="ls-valid" style="color:var(--green);">—</div><div class="list-stat-lbl">Pending</div></div>
+        </div>
+        <input class="list-search" type="text" placeholder="Search name, email, code…" oninput="filterTickets(this.value)" id="list-search">
+        <div class="ticket-list" id="ticket-list"><div class="empty-list">Loading tickets…</div></div>
+    </div>
+</div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://dxuraqjrarpqarratjbz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dXJhcWpyYXJwcWFycmF0amJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjc4MjUsImV4cCI6MjA5MjEwMzgyNX0.1yEE7FGRF1Y0fjJ80r4jg1QUcC-xlLzzg5LdGzv8fek';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null, currentEventId = null;
+let scanInterval = null, videoStream = null;
+let currentTicketId = null, allTickets = [];
+
+/* ── AUTH ── */
+async function doLogin() {
+    const email = document.getElementById('v-email').value.trim();
+    const pw    = document.getElementById('v-pw').value;
+    const btn   = document.getElementById('v-login-btn');
+    const err   = document.getElementById('v-login-err');
+    err.style.display = 'none';
+    if (!email || !pw) { err.textContent = 'Enter email and password'; err.style.display = 'block'; return; }
+    btn.textContent = 'Signing in…'; btn.disabled = true;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    btn.textContent = 'Sign In →'; btn.disabled = false;
+    if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+    await bootVerify(data.user);
+}
+async function doLogout() { stopScan(); await sb.auth.signOut(); location.reload(); }
+document.getElementById('v-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function bootVerify(user) {
+    currentUser = user;
+    // Check profile
+    const { data: profile } = await sb.from('profiles').select('role, name').eq('id', user.id).single();
+    if (!profile) { document.getElementById('v-login-err').textContent = 'No profile found'; document.getElementById('v-login-err').style.display = 'block'; return; }
+    if (profile.role !== 'admin' && profile.role !== 'manager') { document.getElementById('v-login-err').textContent = 'Access denied'; document.getElementById('v-login-err').style.display = 'block'; return; }
+
+    // Get event assignment
+    if (profile.role === 'manager') {
+        const { data: assign } = await sb.from('event_managers').select('event_id').eq('user_id', user.id).single();
+        if (!assign) { document.getElementById('v-login-err').textContent = 'No event assigned to your account'; document.getElementById('v-login-err').style.display = 'block'; return; }
+        currentEventId = assign.event_id;
+    }
+    // Admin can see all — default to BLRSTREETBALL
+    else { currentEventId = '42455e14-19e0-439d-963d-8b0e836f2a27'; }
+
+    // Get event name
+    const { data: ev } = await sb.from('events').select('name').eq('id', currentEventId).single();
+    document.getElementById('topbar-event').textContent = ev?.name || 'Event';
+    document.getElementById('topbar-user').textContent = profile.name || user.email;
+    document.getElementById('login-screen').style.display = 'none';
+    loadTicketList();
+}
+
+// Restore session
+(async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) await bootVerify(session.user);
+})();
+
+/* ── TABS ── */
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='scanner')||(i===1&&tab==='list')));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    if (tab === 'list') { stopScan(); loadTicketList(); }
+}
+
+/* ── SCANNER ── */
+async function startScan() {
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        const video = document.getElementById('video');
+        video.srcObject = videoStream;
+        await video.play();
+        document.getElementById('scanner-box').classList.add('scanning');
+        document.getElementById('btn-start-scan').style.display = 'none';
+        document.getElementById('btn-stop-scan').style.display = 'block';
+        scanInterval = setInterval(scanFrame, 200);
+    } catch(e) {
+        alert('Camera access denied. Please allow camera access or use manual entry below.');
+    }
+}
+
+function stopScan() {
+    if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+    if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    document.getElementById('scanner-box').classList.remove('scanning');
+    document.getElementById('btn-start-scan').style.display = 'block';
+    document.getElementById('btn-stop-scan').style.display = 'none';
+}
+
+function scanFrame() {
+    const video  = document.getElementById('video');
+    const canvas = document.getElementById('scan-canvas');
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data) {
+        stopScan();
+        verifyTicket(code.data.trim().toUpperCase());
+    }
+}
+
+function checkManual() {
+    const code = document.getElementById('manual-code').value.trim().toUpperCase();
+    if (!code) return;
+    verifyTicket(code);
+}
+
+/* ── VERIFY ── */
+async function verifyTicket(code) {
+    document.getElementById('result-card').style.display = 'none';
+    const { data: ticket, error } = await sb.from('tickets')
+        .select('*')
+        .eq('ticket_code', code)
+        .eq('event_id', currentEventId)
+        .single();
+
+    showResult(ticket, error, code);
+}
+
+function showResult(ticket, error, code) {
+    const card   = document.getElementById('result-card');
+    const icon   = document.getElementById('result-icon');
+    const status = document.getElementById('result-status');
+    const details = document.getElementById('result-details');
+    const markBtn = document.getElementById('btn-mark-paid');
+
+    card.className = 'result-card';
+    markBtn.style.display = 'none';
+    currentTicketId = null;
+
+    if (error || !ticket) {
+        card.classList.add('invalid');
+        icon.textContent = '❌';
+        status.textContent = 'Invalid Ticket';
+        details.innerHTML = `<div class="result-row"><div class="result-lbl">Code</div><div class="result-val">${code}</div></div><div class="result-row"><div class="result-lbl">Reason</div><div class="result-val">Not found in system</div></div>`;
+    } else if (ticket.status === 'paid') {
+        card.classList.add('paid');
+        icon.textContent = '🟡';
+        status.textContent = 'Already Paid';
+        details.innerHTML = buildDetails(ticket);
+        const paidAt = ticket.checked_in_at ? new Date(ticket.checked_in_at).toLocaleTimeString() : '—';
+        details.innerHTML += `<div class="result-row"><div class="result-lbl">Paid at</div><div class="result-val">${paidAt}</div></div>`;
+    } else if (ticket.status === 'used') {
+        card.classList.add('used');
+        icon.textContent = '❌';
+        status.textContent = 'Already Used';
+        details.innerHTML = buildDetails(ticket);
+    } else if (ticket.status === 'cancelled') {
+        card.classList.add('used');
+        icon.textContent = '🚫';
+        status.textContent = 'Cancelled';
+        details.innerHTML = buildDetails(ticket);
+    } else {
+        // Valid — show mark as paid button
+        card.classList.add('valid');
+        icon.textContent = '✅';
+        status.textContent = 'Valid Ticket';
+        details.innerHTML = buildDetails(ticket);
+        currentTicketId = ticket.id;
+        markBtn.style.display = 'block';
+    }
+
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function buildDetails(ticket) {
+    return `
+        <div class="result-row"><div class="result-lbl">Name</div><div class="result-val">${ticket.attendee_name}</div></div>
+        <div class="result-row"><div class="result-lbl">Email</div><div class="result-val" style="font-size:.75rem;">${ticket.attendee_email}</div></div>
+        <div class="result-row"><div class="result-lbl">Phone</div><div class="result-val">${ticket.attendee_phone||'—'}</div></div>
+        <div class="result-row"><div class="result-lbl">Code</div><div class="result-val" style="font-size:.72rem;color:var(--neon);">${ticket.ticket_code}</div></div>
+    `;
+}
+
+/* ── MARK PAID ── */
+async function markPaid() {
+    if (!currentTicketId) return;
+    const btn = document.getElementById('btn-mark-paid');
+    btn.textContent = 'Marking…'; btn.disabled = true;
+
+    const { error } = await sb.from('tickets').update({
+        status: 'paid',
+        checked_in_at: new Date().toISOString(),
+        checked_in_by: currentUser.id
+    }).eq('id', currentTicketId);
+
+    btn.textContent = '✓ Mark as Paid'; btn.disabled = false;
+
+    if (error) { alert('Failed to update: ' + error.message); return; }
+
+    // Update UI
+    const card = document.getElementById('result-card');
+    card.className = 'result-card paid';
+    document.getElementById('result-icon').textContent = '🟡';
+    document.getElementById('result-status').textContent = 'Marked as Paid';
+    btn.style.display = 'none';
+    currentTicketId = null;
+    loadTicketList();
+}
+
+function resetResult() {
+    document.getElementById('result-card').style.display = 'none';
+    document.getElementById('manual-code').value = '';
+    currentTicketId = null;
+}
+
+/* ── TICKET LIST ── */
+async function loadTicketList() {
+    const { data, error } = await sb.from('tickets')
+        .select('*')
+        .eq('event_id', currentEventId)
+        .order('created_at', { ascending: false });
+
+    if (error) { document.getElementById('ticket-list').innerHTML = `<div class="empty-list">Error: ${error.message}</div>`; return; }
+    allTickets = data || [];
+    renderList(allTickets);
+    updateStats(allTickets);
+}
+
+function updateStats(list) {
+    document.getElementById('ls-total').textContent = list.length;
+    document.getElementById('ls-paid').textContent  = list.filter(t => t.status === 'paid').length;
+    document.getElementById('ls-valid').textContent = list.filter(t => t.status === 'valid').length;
+}
+
+function filterTickets(q) {
+    q = q.toLowerCase();
+    const filtered = q ? allTickets.filter(t =>
+        (t.attendee_name||'').toLowerCase().includes(q) ||
+        (t.attendee_email||'').toLowerCase().includes(q) ||
+        (t.ticket_code||'').toLowerCase().includes(q)
+    ) : allTickets;
+    renderList(filtered);
+}
+
+function renderList(list) {
+    const el = document.getElementById('ticket-list');
+    if (!list.length) { el.innerHTML = `<div class="empty-list">No tickets found</div>`; return; }
+    el.innerHTML = list.map(t => {
+        const initials = (t.attendee_name||'?').slice(0,2).toUpperCase();
+        const pillClass = t.status === 'paid' ? 'pill-paid' : t.status === 'used' ? 'pill-used' : t.status === 'cancelled' ? 'pill-cancelled' : 'pill-valid';
+        const pillLabel = t.status === 'paid' ? '💰 Paid' : t.status === 'used' ? 'Used' : t.status === 'cancelled' ? 'Cancelled' : '● Valid';
+        return `<div class="ticket-row" onclick="quickVerify('${t.ticket_code}')">
+            <div class="ticket-row-avatar">${initials}</div>
+            <div class="ticket-row-info">
+                <div class="ticket-row-name">${t.attendee_name}</div>
+                <div class="ticket-row-code">${t.ticket_code} · ${t.attendee_phone||t.attendee_email}</div>
+            </div>
+            <span class="ticket-status-pill ${pillClass}">${pillLabel}</span>
+        </div>`;
+    }).join('');
+}
+
+function quickVerify(code) {
+    switchTab('scanner');
+    document.getElementById('manual-code').value = code;
+    verifyTicket(code);
+}
+</script>
+</body>
+</html>
