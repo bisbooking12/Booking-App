@@ -447,7 +447,7 @@
           <div class="t-event">BLRSTREETBALL</div>
           <div class="t-type" id="t-type">PLAYER — 1V1 BATTLE</div>
           <div class="t-confirmed"><span>✓</span> REGISTRATION CONFIRMED</div>
-          <div class="t-qr"><canvas id="qr-canvas"></canvas></div>
+          <div class="t-qr"><img id="qr-canvas" alt="QR Code" style="border:3px solid var(--cream);border-radius:3px;width:180px;height:180px;display:none;"></div>
           <div class="t-code" id="t-code"></div>
           <hr class="t-divider">
           <div class="t-grid">
@@ -617,14 +617,17 @@ function renderTicket({ name, phone, code }) {
   document.getElementById('t-code').textContent  = code;
   document.getElementById('t-name').textContent  = name;
   document.getElementById('t-phone').textContent = phone;
-  QRCode.toCanvas(document.getElementById('qr-canvas'), code, {
+  QRCode.toDataURL(code, {
     width: 180, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
-  });
+  }).then(url => {
+    const img = document.getElementById('qr-canvas');
+    img.src = url;
+    img.style.display = 'block';
+  }).catch(err => console.error('QR generation failed:', err));
 }
 
-/* ── DOWNLOAD ── */
 function downloadTicket() {
-  const qr   = document.getElementById('qr-canvas');
+  const qrImg = document.getElementById('qr-canvas');
   const name = document.getElementById('t-name').textContent;
   const code = document.getElementById('t-code').textContent;
   const type = document.getElementById('t-type').textContent;
@@ -633,64 +636,75 @@ function downloadTicket() {
   c.width = 600; c.height = 840;
   const ctx = c.getContext('2d');
 
-  // BG
-  ctx.fillStyle = '#0d0d0d'; ctx.fillRect(0,0,600,840);
+  // Draw everything, then composite QR on top
+  function drawAll(qrBitmap) {
+    // BG
+    ctx.fillStyle = '#0d0d0d'; ctx.fillRect(0,0,600,840);
 
-  // Orange bar
-  const g = ctx.createLinearGradient(0,0,600,0);
-  g.addColorStop(0,'#FF4D00'); g.addColorStop(.5,'#ff8c42'); g.addColorStop(1,'#FF4D00');
-  ctx.fillStyle = g; ctx.fillRect(0,0,600,5);
+    // Orange bar
+    const g = ctx.createLinearGradient(0,0,600,0);
+    g.addColorStop(0,'#FF4D00'); g.addColorStop(.5,'#ff8c42'); g.addColorStop(1,'#FF4D00');
+    ctx.fillStyle = g; ctx.fillRect(0,0,600,5);
 
-  // Event name
-  ctx.fillStyle = '#FF4D00';
-  ctx.font = 'bold 50px Arial Black, Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('BLRSTREETBALL', 300, 72);
+    // Event name
+    ctx.fillStyle = '#FF4D00';
+    ctx.font = 'bold 50px Arial Black, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BLRSTREETBALL', 300, 72);
 
-  // Type
-  ctx.fillStyle = '#555'; ctx.font = '700 12px monospace';
-  ctx.fillText(type.toUpperCase(), 300, 100);
+    // Type
+    ctx.fillStyle = '#555'; ctx.font = '700 12px monospace';
+    ctx.fillText(type.toUpperCase(), 300, 100);
 
-  // Confirmed badge bg
-  ctx.fillStyle = 'rgba(255,77,0,.1)';
-  ctx.beginPath(); ctx.roundRect(195,112,210,28,3); ctx.fill();
-  ctx.fillStyle = '#FF4D00'; ctx.font = '700 10px monospace';
-  ctx.fillText('✓  REGISTRATION CONFIRMED', 300, 131);
+    // Confirmed badge bg
+    ctx.fillStyle = 'rgba(255,77,0,.1)';
+    ctx.beginPath(); ctx.roundRect(195,112,210,28,3); ctx.fill();
+    ctx.fillStyle = '#FF4D00'; ctx.font = '700 10px monospace';
+    ctx.fillText('✓  REGISTRATION CONFIRMED', 300, 131);
 
-  // QR
-  ctx.drawImage(qr, 210, 155, 180, 180);
+    // QR
+    if (qrBitmap) ctx.drawImage(qrBitmap, 210, 155, 180, 180);
 
-  // Code
-  ctx.fillStyle = '#FF4D00'; ctx.font = '700 15px monospace';
-  ctx.fillText(code, 300, 374);
+    // Code
+    ctx.fillStyle = '#FF4D00'; ctx.font = '700 15px monospace';
+    ctx.fillText(code, 300, 374);
 
-  // Dashed line
-  ctx.strokeStyle = 'rgba(255,77,0,.22)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
-  ctx.beginPath(); ctx.moveTo(40,392); ctx.lineTo(560,392); ctx.stroke();
-  ctx.setLineDash([]);
+    // Dashed line
+    ctx.strokeStyle = 'rgba(255,77,0,.22)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(40,392); ctx.lineTo(560,392); ctx.stroke();
+    ctx.setLineDash([]);
 
-  // Fields
-  const fields = [['NAME',name],['DATE','15 Aug 2025'],['VENUE','Depot 18, Jayamahal'],['PAYMENT','Cash at the door']];
-  fields.forEach(([lbl,val],i) => {
-    const x = i%2===0?60:330;
-    const y = 430 + Math.floor(i/2)*78;
-    ctx.fillStyle='#555'; ctx.font='700 10px monospace'; ctx.textAlign='left';
-    ctx.fillText(lbl,x,y);
-    ctx.fillStyle='#F2EFE8'; ctx.font='700 16px Helvetica,sans-serif';
-    ctx.fillText(val,x,y+22);
-  });
+    // Fields
+    const fields = [['NAME',name],['DATE','15 Aug 2025'],['VENUE','Depot 18, Jayamahal'],['PAYMENT','Cash at the door']];
+    fields.forEach(([lbl,val],i) => {
+      const x = i%2===0?60:330;
+      const y = 430 + Math.floor(i/2)*78;
+      ctx.fillStyle='#555'; ctx.font='700 10px monospace'; ctx.textAlign='left';
+      ctx.fillText(lbl,x,y);
+      ctx.fillStyle='#F2EFE8'; ctx.font='700 16px Helvetica,sans-serif';
+      ctx.fillText(val,x,y+22);
+    });
 
-  // Bottom bar
-  ctx.fillStyle='rgba(255,77,0,.06)'; ctx.fillRect(0,730,600,110);
-  ctx.fillStyle='#444'; ctx.font='600 11px monospace'; ctx.textAlign='center';
-  ctx.fillText('SHOW THIS QR CODE AT THE DOOR · BLRSTREETBALL 2025',300,788);
-  ctx.fillStyle='#FF4D00'; ctx.font='bold 18px Arial Black,sans-serif';
-  ctx.fillText('LISTED ON NEXUS PORTAL',300,816);
+    // Bottom bar
+    ctx.fillStyle='rgba(255,77,0,.06)'; ctx.fillRect(0,730,600,110);
+    ctx.fillStyle='#444'; ctx.font='600 11px monospace'; ctx.textAlign='center';
+    ctx.fillText('SHOW THIS QR CODE AT THE DOOR · BLRSTREETBALL 2025',300,788);
+    ctx.fillStyle='#FF4D00'; ctx.font='bold 18px Arial Black,sans-serif';
+    ctx.fillText('LISTED ON NEXUS PORTAL',300,816);
 
-  const a = document.createElement('a');
-  a.download = `BLRSTREETBALL-${code}.png`;
-  a.href = c.toDataURL('image/png');
-  a.click();
+    const a = document.createElement('a');
+    a.download = `BLRSTREETBALL-${code}.png`;
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
+
+  if (qrImg.src) {
+    const bmp = new Image();
+    bmp.onload = () => drawAll(bmp);
+    bmp.src = qrImg.src;
+  } else {
+    drawAll(null);
+  }
 }
 </script>
 </body>
