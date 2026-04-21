@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BLRSTREETBALL — Summer Series 2025</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
-  /* ── CORE ENGINE ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -30,18 +31,13 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ── UTILITIES ── */
   .container { max-width: 1300px; margin: 0 auto; padding: 0 30px; }
   .section { padding: 100px 0; }
   .orange { color: var(--orange); }
-  .uppercase { text-transform: uppercase; }
-  .italic { font-style: italic; }
-  .bold { font-weight: 900; }
 
-  /* ── HEADINGS ── */
-  h1, h2, h3 { 
-    font-family: "Arial Black", "Impact", sans-serif; 
-    text-transform: uppercase; 
+  h1, h2, h3 {
+    font-family: "Arial Black", "Impact", sans-serif;
+    text-transform: uppercase;
     line-height: 0.85;
     margin-bottom: 20px;
   }
@@ -49,7 +45,7 @@
   h2 { font-size: clamp(3rem, 8vw, 6rem); letter-spacing: -2px; }
   h3 { font-size: 2.2rem; letter-spacing: -1px; }
 
-  /* ── TOPBAR ── */
+  /* TOPBAR */
   .topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
     background: rgba(10, 10, 10, 0.95);
@@ -58,31 +54,25 @@
     display: flex; justify-content: space-between; align-items: center;
     backdrop-filter: blur(10px);
   }
-  .brand { 
-    font-family: "Arial Black", sans-serif; 
-    font-size: 1.8rem; 
-    letter-spacing: -1px; 
-    color: var(--cream);
-    text-decoration: none;
+  .brand {
+    font-family: "Arial Black", sans-serif;
+    font-size: 1.8rem; letter-spacing: -1px;
+    color: var(--cream); text-decoration: none;
   }
   .brand span { color: var(--orange); }
-  
-  .status-pill { 
-    font-family: monospace; font-size: 0.7rem; color: var(--orange); 
+  .status-pill {
+    font-family: monospace; font-size: 0.7rem; color: var(--orange);
     background: rgba(255, 77, 0, 0.1); padding: 8px 16px; border-radius: 4px;
-    border: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
   }
   .dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* ── HERO ── */
+  /* HERO */
   .hero {
-    min-height: 100vh;
-    padding-top: 140px;
+    min-height: 100vh; padding-top: 140px;
     display: flex; flex-direction: column; justify-content: center;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
   }
   .hero::before {
     content: ''; position: absolute; top: 0; right: 0; width: 60%; height: 100%;
@@ -92,13 +82,12 @@
   .hero-grid { display: grid; grid-template-columns: 1.4fr 0.6fr; gap: 60px; align-items: flex-end; }
   .hero-label { font-family: monospace; color: var(--orange); letter-spacing: 6px; margin-bottom: 20px; display: block; font-size: 0.9rem; }
   .hero-tagline { font-size: 1.8rem; font-weight: 700; margin-bottom: 40px; line-height: 1.2; border-left: 4px solid var(--orange); padding-left: 25px; }
-  
   .hero-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; border-top: 1px solid var(--border); padding-top: 30px; }
   .meta-key { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
   .meta-val { font-weight: 700; font-size: 1.3rem; color: var(--cream); }
 
-  /* ── MARQUEE ── */
-  .marquee-wrap { 
+  /* MARQUEE */
+  .marquee-wrap {
     background: var(--orange); color: var(--dark); padding: 20px 0; margin: 80px 0;
     overflow: hidden; white-space: nowrap; transform: rotate(-1.5deg) scale(1.05);
     box-shadow: 0 10px 30px rgba(255, 77, 0, 0.3);
@@ -106,62 +95,69 @@
   .marquee-content { display: inline-block; animation: marquee 35s linear infinite; font-family: "Arial Black", sans-serif; font-size: 2.5rem; }
   @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  /* ── COUNTDOWN ── */
+  /* COUNTDOWN */
   .countdown { background: var(--dark-alt); text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
   .cd-grid { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; margin-top: 50px; }
-  .cd-box { 
-    background: rgba(255, 77, 0, 0.03); border: 1px solid var(--border); padding: 40px 30px; 
+  .cd-box {
+    background: rgba(255, 77, 0, 0.03); border: 1px solid var(--border); padding: 40px 30px;
     min-width: 160px; border-radius: 4px; transition: var(--transition);
   }
   .cd-box:hover { border-color: var(--orange); background: rgba(255, 77, 0, 0.08); transform: translateY(-10px); }
   .cd-num { font-family: "Arial Black", sans-serif; font-size: 4.5rem; color: var(--orange); display: block; line-height: 1; text-shadow: 0 0 20px var(--orange-glow); }
   .cd-lbl { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-top: 15px; display: block; letter-spacing: 2px; }
 
-  /* ── REGISTER ── */
+  /* REG CARDS */
   .reg-grid { display: grid; grid-template-columns: 1fr 1fr; }
-  .reg-card { 
+  .reg-card {
     padding: 80px 60px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-    text-decoration: none; color: inherit; transition: var(--transition); position: relative; overflow: hidden;
+    color: var(--cream); transition: var(--transition); position: relative; overflow: hidden;
+    cursor: pointer; background: none; border-top: none; border-left: none;
+    text-align: left; font-family: inherit;
   }
   .reg-card::after { content: '→'; position: absolute; bottom: 40px; right: 40px; font-size: 3rem; opacity: 0.1; transition: var(--transition); }
   .reg-card:hover { background: var(--orange); color: var(--dark); }
   .reg-card:hover::after { opacity: 1; transform: translateX(10px); }
   .reg-card:last-child { border-right: none; }
-  .reg-badge { 
-    display: inline-block; padding: 6px 18px; border: 1px solid var(--orange); 
+  .reg-badge {
+    display: inline-block; padding: 6px 18px; border: 1px solid var(--orange);
     color: var(--orange); font-family: monospace; font-size: 0.8rem; border-radius: 4px; margin-bottom: 30px;
   }
   .reg-card:hover .reg-badge { border-color: var(--dark); color: var(--dark); }
   .reg-price { font-family: "Arial Black", sans-serif; font-size: 3.5rem; margin-top: 40px; line-height: 1; }
+  .seats-left { font-family: monospace; font-size: 0.75rem; color: var(--text-muted); margin-top: 12px; }
+  .reg-card:hover .seats-left { color: rgba(10,10,10,.55); }
 
-  /* ── FORMATS ── */
+  /* FORMATS */
   .formats { background: var(--dark-alt); }
   .fmt-list { margin-top: 60px; }
-  .fmt-row { 
-    display: flex; justify-content: space-between; align-items: center; 
+  .fmt-row {
+    display: flex; justify-content: space-between; align-items: center;
     padding: 35px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: var(--transition);
+    transition: var(--transition); cursor: pointer;
   }
   .fmt-row:hover { padding-left: 20px; color: var(--orange); }
   .fmt-name { font-family: "Arial Black", sans-serif; font-size: 2.5rem; letter-spacing: -1px; }
+  .fmt-right { display: flex; align-items: center; gap: 20px; }
   .fmt-price { font-family: "Arial Black", sans-serif; font-size: 1.8rem; color: var(--orange); }
+  .fmt-row:hover .fmt-price { color: var(--cream); }
+  .fmt-cta { font-family: monospace; font-size: 0.75rem; padding: 6px 14px; border: 1px solid var(--orange); color: var(--orange); border-radius: 3px; background: none; cursor: pointer; pointer-events: none; }
+  .fmt-row:hover .fmt-cta { border-color: var(--cream); color: var(--cream); }
 
-  /* ── ABOUT ── */
+  /* ABOUT */
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
   .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; border-top: 1px solid var(--border); padding-top: 40px; }
   .stat-num { font-family: "Arial Black", sans-serif; font-size: 3.5rem; color: var(--orange); line-height: 1; }
   .stat-lbl { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-  .quote-box { 
-    background: linear-gradient(135deg, rgba(255, 77, 0, 0.1) 0%, transparent 100%); 
-    border: 1px solid var(--border); padding: 60px; border-radius: 4px; text-align: center;
-    position: relative;
+  .quote-box {
+    background: linear-gradient(135deg, rgba(255, 77, 0, 0.1) 0%, transparent 100%);
+    border: 1px solid var(--border); padding: 60px; border-radius: 4px; text-align: center; position: relative;
   }
   .quote-box::before { content: '"'; position: absolute; top: 20px; left: 20px; font-size: 6rem; color: var(--orange); opacity: 0.2; font-family: serif; }
   .quote-text { font-size: 2.2rem; font-weight: 900; font-style: italic; line-height: 1.2; color: var(--cream); }
 
-  /* ── VENUES ── */
+  /* VENUES */
   .venue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; }
-  .venue-card { 
+  .venue-card {
     background: var(--dark-alt); border: 1px solid var(--border); padding: 50px; border-radius: 4px;
     transition: var(--transition);
   }
@@ -170,31 +166,114 @@
   .venue-name { font-family: "Arial Black", sans-serif; font-size: 2rem; margin-bottom: 20px; letter-spacing: -1px; }
   .venue-info { color: var(--text-muted); font-size: 1.1rem; line-height: 1.7; }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   .footer { padding: 80px 40px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 40px; }
   .footer-brand { font-family: "Arial Black", sans-serif; font-size: 2rem; letter-spacing: -1px; }
   .footer-brand span { color: var(--orange); }
   .footer-link a { color: var(--orange); text-decoration: none; font-family: monospace; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid transparent; transition: var(--transition); }
   .footer-link a:hover { border-bottom-color: var(--orange); }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 1000px) {
-    .hero-grid, .reg-grid, .about-grid, .venue-grid { grid-template-columns: 1fr; }
-    .hero { padding-top: 120px; text-align: center; }
-    .hero-meta { text-align: left; }
+  /* ══ MODAL ══ */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--dark-alt); border: 1px solid var(--border); border-radius: 4px;
+    width: 100%; max-width: 540px; max-height: 94vh; overflow-y: auto; position: relative;
+  }
+  .modal-bar { height: 4px; background: linear-gradient(90deg,var(--orange),#ff8c42,var(--orange)); }
+  .modal-hd { padding: 32px 36px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  .modal-hd-left {}
+  .modal-badge { font-family: monospace; font-size: 0.68rem; color: var(--orange); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+  .modal-title-txt { font-family: "Arial Black", sans-serif; font-size: 1.9rem; text-transform: uppercase; letter-spacing: -1px; color: var(--cream); line-height: 1; }
+  .modal-hd-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .modal-price-txt { font-family: "Arial Black", sans-serif; font-size: 2rem; color: var(--orange); }
+  .modal-close-btn {
+    width: 36px; height: 36px; background: none; border: 1px solid var(--border);
+    border-radius: 3px; color: var(--text-muted); font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: var(--transition);
+  }
+  .modal-close-btn:hover { color: var(--orange); border-color: var(--orange); }
+
+  /* FORM */
+  .modal-body { padding: 28px 36px 36px; }
+  .f-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+  .f-label { font-family: monospace; font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
+  .f-input {
+    width: 100%; padding: 13px 15px;
+    background: rgba(255,77,0,0.04); border: 1px solid var(--border); border-radius: 3px;
+    color: var(--cream); font-family: "Helvetica Neue", sans-serif; font-size: 1rem;
+    outline: none; transition: var(--transition);
+  }
+  .f-input:focus { border-color: var(--orange); background: rgba(255,77,0,0.07); }
+  .f-input::placeholder { color: #444; }
+  .f-err { font-family: monospace; font-size: 0.72rem; color: #ff7676; margin-bottom: 12px; display: none; }
+  .f-submit {
+    width: 100%; padding: 17px; margin-top: 6px;
+    background: var(--orange); color: var(--dark); border: none; border-radius: 3px;
+    font-family: "Arial Black", sans-serif; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: var(--transition);
+  }
+  .f-submit:hover { background: #ff6a2a; box-shadow: 0 0 30px var(--orange-glow); transform: translateY(-2px); }
+  .f-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .f-note { font-family: monospace; font-size: 0.68rem; color: var(--text-muted); text-align: center; margin-top: 13px; line-height: 1.65; }
+
+  /* TICKET */
+  .ticket-wrap { padding: 0 36px 36px; display: none; }
+  .ticket {
+    background: #0d0d0d; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; text-align: center;
+  }
+  .ticket-top { height: 4px; background: linear-gradient(90deg,var(--orange),#ff8c42,var(--orange)); }
+  .ticket-body { padding: 28px 24px; }
+  .t-event { font-family: "Arial Black", sans-serif; font-size: 1.5rem; text-transform: uppercase; letter-spacing: -1px; color: var(--cream); margin-bottom: 3px; }
+  .t-type { font-family: monospace; font-size: 0.68rem; color: var(--orange); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 18px; }
+  .t-confirmed { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; background: rgba(255,77,0,.1); border: 1px solid var(--border); border-radius: 3px; font-family: monospace; font-size: 0.68rem; color: var(--orange); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 22px; }
+  .t-qr { display: flex; justify-content: center; margin-bottom: 14px; }
+  .t-qr canvas { border: 3px solid var(--cream); border-radius: 3px; }
+  .t-code { font-family: monospace; font-size: 0.82rem; letter-spacing: 3px; color: var(--orange); margin-bottom: 22px; word-break: break-all; }
+  .t-divider { border: none; border-top: 1px dashed rgba(255,77,0,.2); margin: 18px 0; }
+  .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; margin-bottom: 20px; }
+  .t-lbl { font-family: monospace; font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .t-val { font-weight: 700; font-size: 0.88rem; color: var(--cream); }
+  .t-footer { background: rgba(255,77,0,.06); border-top: 1px solid var(--border); padding: 13px; font-family: monospace; font-size: 0.68rem; color: var(--text-muted); line-height: 1.6; text-align: center; }
+  .t-dl-btn {
+    width: 100%; padding: 13px; margin-top: 14px;
+    background: none; border: 1px solid var(--border); border-radius: 3px;
+    color: var(--text-muted); font-family: monospace; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: var(--transition);
+  }
+  .t-dl-btn:hover { border-color: var(--orange); color: var(--orange); }
+  .t-email-note { font-family: monospace; font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 12px; line-height: 1.6; }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
     h1 { font-size: 4.5rem; letter-spacing: -2px; }
+    h2 { font-size: 3rem; }
     .topbar { padding: 15px 20px; }
-    .reg-card { padding: 60px 30px; }
-    .stat-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
     .hero-tagline { border-left: none; padding-left: 0; }
+    .reg-grid { grid-template-columns: 1fr; }
+    .reg-card { border-right: none; padding: 60px 30px; }
+    .reg-card:last-child { border-top: 1px solid var(--border); }
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .venue-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr; gap: 40px; }
+    .footer { padding: 60px 20px; flex-direction: column; gap: 20px; text-align: center; }
+    .modal-hd { padding: 24px 20px 0; }
+    .modal-body { padding: 22px 20px 28px; }
+    .ticket-wrap { padding: 0 20px 28px; }
+    .t-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
 <header class="topbar">
-  <a href="#" class="brand">BLR<span>STREETBALL</span></a>
-  <div class="status-pill"><div class="dot"></div> REGISTRATION OPEN</div>
+  <a href="index.html" class="brand">BLR<span>STREETBALL</span></a>
+  <div class="status-pill"><div class="dot"></div> REGISTRATION OPEN &nbsp;·&nbsp; <span id="seats-topbar">— SPOTS LEFT</span></div>
 </header>
 
 <section class="hero">
@@ -202,36 +281,23 @@
     <div class="hero-grid">
       <div>
         <span class="hero-label uppercase">India's First Street Football Community</span>
-        <h1>STREET<br><span class="orange italic">BALL.</span><br>BLR</h1>
+        <h1>STREET<br><span class="orange" style="font-style:italic;">BALL.</span><br>BLR</h1>
       </div>
       <div>
-        <p class="hero-tagline italic">"No teams. No hiding. One court, one king — and we're turning it into a full-blown rave."</p>
+        <p class="hero-tagline" style="font-style:italic;">"No teams. No hiding. One court, one king — and we're turning it into a full-blown rave."</p>
         <div class="hero-meta">
-          <div class="meta-item">
-            <div class="meta-key">Date</div>
-            <div class="meta-val">15 Aug 2025</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-key">Venue</div>
-            <div class="meta-val">Depot 18, Jayamahal</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-key">City</div>
-            <div class="meta-val">Bengaluru</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-key">Entry</div>
-            <div class="meta-val">From ₹150</div>
-          </div>
+          <div class="meta-item"><div class="meta-key">Date</div><div class="meta-val">15 Aug 2025</div></div>
+          <div class="meta-item"><div class="meta-key">Venue</div><div class="meta-val">Depot 18, Jayamahal</div></div>
+          <div class="meta-item"><div class="meta-key">City</div><div class="meta-val">Bengaluru</div></div>
+          <div class="meta-item"><div class="meta-key">Entry</div><div class="meta-val">From ₹150</div></div>
         </div>
       </div>
     </div>
   </div>
-  
   <div class="marquee-wrap">
     <div class="marquee-content">
-      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. • 
-      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. • 
+      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. •
+      1V1 BATTLES • NO TEAMS. NO HIDING. • SUMMER SERIES 2025 • 2V2 TOURNAMENTS • DEPOT 18 • BENGALURU'S FINEST • ONE COURT. ONE KING. •
     </div>
   </div>
 </section>
@@ -239,7 +305,7 @@
 <section class="countdown section">
   <div class="container">
     <span class="hero-label uppercase">Time Remaining</span>
-    <h2>SUMMER <span class="orange italic">SERIES</span> 2025</h2>
+    <h2>SUMMER <span class="orange" style="font-style:italic;">SERIES</span> 2025</h2>
     <div class="cd-grid">
       <div class="cd-box"><span class="cd-num" id="cdD">00</span><span class="cd-lbl">Days</span></div>
       <div class="cd-box"><span class="cd-num" id="cdH">00</span><span class="cd-lbl">Hours</span></div>
@@ -249,19 +315,22 @@
   </div>
 </section>
 
+<!-- REG CARDS — now open modals -->
 <div class="reg-grid">
-  <a href="https://www.instagram.com/blrstreetball/" class="reg-card" target="_blank">
+  <button class="reg-card" onclick="openModal('player')">
     <span class="reg-badge">PLAYERS</span>
     <h3>REGISTER AS A PLAYER</h3>
     <p>Step onto the court. 1v1 battles or 2v2 squads — individual skill, raw talent, zero excuses. Bengaluru's most electric street football stage.</p>
     <div class="reg-price">₹300</div>
-  </a>
-  <a href="https://www.instagram.com/blrstreetball/" class="reg-card" target="_blank">
+    <div class="seats-left" id="player-seats">— spots remaining</div>
+  </button>
+  <button class="reg-card" onclick="openModal('attendee')">
     <span class="reg-badge">SPECTATORS</span>
     <h3>REGISTER AS ATTENDEE</h3>
     <p>Come for the battles, stay for the rave. Live music, trash talk culture, and the best street football in India. Front-row to the chaos.</p>
     <div class="reg-price">₹150</div>
-  </a>
+    <div class="seats-left" id="attendee-seats">— spots remaining</div>
+  </button>
 </div>
 
 <section class="formats section">
@@ -269,17 +338,17 @@
     <span class="hero-label uppercase">Event Formats</span>
     <h2>HOW WE PLAY</h2>
     <div class="fmt-list">
-      <div class="fmt-row">
+      <div class="fmt-row" onclick="openModal('player')">
         <div class="fmt-name">1V1 BATTLE</div>
-        <div class="fmt-price">₹300</div>
+        <div class="fmt-right"><div class="fmt-price">₹300</div><button class="fmt-cta">REGISTER →</button></div>
       </div>
-      <div class="fmt-row">
+      <div class="fmt-row" onclick="openModal('2v2')">
         <div class="fmt-name">2V2 TOURNAMENT</div>
-        <div class="fmt-price">₹500</div>
+        <div class="fmt-right"><div class="fmt-price">₹500</div><button class="fmt-cta">REGISTER →</button></div>
       </div>
-      <div class="fmt-row">
+      <div class="fmt-row" onclick="openModal('attendee')">
         <div class="fmt-name">ATTENDEE PASS</div>
-        <div class="fmt-price">₹150</div>
+        <div class="fmt-right"><div class="fmt-price">₹150</div><button class="fmt-cta">REGISTER →</button></div>
       </div>
     </div>
   </div>
@@ -293,18 +362,9 @@
         <h2>INDIA'S FIRST STREET FC</h2>
         <p style="color: var(--text-muted); font-size: 1.2rem; margin-top: 25px; line-height: 1.8;">Breaking away from traditional team-based structures, BLRSTREETBALL puts individual skill and raw talent at the centre. No place to hide. No team to carry you. We take football off the pitch and into the streets, malls, and urban arenas of Bengaluru.</p>
         <div class="stat-grid">
-          <div class="stat">
-            <div class="stat-num">100+</div>
-            <div class="stat-lbl">Players</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">15+</div>
-            <div class="stat-lbl">Events</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">1</div>
-            <div class="stat-lbl">Champion</div>
-          </div>
+          <div><div class="stat-num">100+</div><div class="stat-lbl">Players</div></div>
+          <div><div class="stat-num">15+</div><div class="stat-lbl">Events</div></div>
+          <div><div class="stat-num">1</div><div class="stat-lbl">Champion</div></div>
         </div>
       </div>
       <div>
@@ -341,21 +401,297 @@
   <div class="footer-link">LISTED ON <a href="https://nexus-silk-delta.vercel.app" target="_blank">NEXUS PORTAL</a></div>
 </footer>
 
-<script>
-  // Countdown Logic
-  const target = new Date('2025-08-15T18:00:00+05:30').getTime();
-  function updateCD() {
-    const now = new Date().getTime();
-    const diff = target - now;
-    if (diff < 0) return;
-    document.getElementById('cdD').innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-    document.getElementById('cdH').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-    document.getElementById('cdM').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-    document.getElementById('cdS').innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-  }
-  setInterval(updateCD, 1000);
-  updateCD();
-</script>
+<!-- ══ REGISTRATION MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleBgClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-hd">
+      <div class="modal-hd-left">
+        <div class="modal-badge" id="m-badge">PLAYER REGISTRATION</div>
+        <div class="modal-title-txt" id="m-title">REGISTER AS PLAYER</div>
+      </div>
+      <div class="modal-hd-right">
+        <div class="modal-price-txt" id="m-price">₹300</div>
+        <button class="modal-close-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>
 
+    <!-- FORM STATE -->
+    <div class="modal-body" id="m-form">
+      <div class="f-group">
+        <label class="f-label">Full Name</label>
+        <input class="f-input" type="text" id="f-name" placeholder="Your full name" autocomplete="name">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Email Address</label>
+        <input class="f-input" type="email" id="f-email" placeholder="you@email.com" autocomplete="email">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Phone Number</label>
+        <input class="f-input" type="tel" id="f-phone" placeholder="+91 9999 000 000" autocomplete="tel">
+      </div>
+      <div class="f-group" id="partner-row" style="display:none;">
+        <label class="f-label">Partner's Name (2v2)</label>
+        <input class="f-input" type="text" id="f-partner" placeholder="Your partner's full name">
+      </div>
+      <div class="f-err" id="f-err"></div>
+      <button class="f-submit" id="f-submit" onclick="doRegister()">CLAIM MY TICKET →</button>
+      <p class="f-note">Ticket appears instantly on this page · Cash at door · <span id="m-seats-note">—</span></p>
+    </div>
+
+    <!-- TICKET STATE -->
+    <div class="ticket-wrap" id="m-ticket">
+      <div class="ticket">
+        <div class="ticket-top"></div>
+        <div class="ticket-body">
+          <div class="t-event">BLRSTREETBALL</div>
+          <div class="t-type" id="t-type">PLAYER — 1V1 BATTLE</div>
+          <div class="t-confirmed"><span>✓</span> REGISTRATION CONFIRMED</div>
+          <div class="t-qr"><canvas id="qr-canvas"></canvas></div>
+          <div class="t-code" id="t-code"></div>
+          <hr class="t-divider">
+          <div class="t-grid">
+            <div><div class="t-lbl">Name</div><div class="t-val" id="t-name"></div></div>
+            <div><div class="t-lbl">Phone</div><div class="t-val" id="t-phone"></div></div>
+            <div><div class="t-lbl">Date</div><div class="t-val">15 Aug 2025</div></div>
+            <div><div class="t-lbl">Venue</div><div class="t-val">Depot 18, Jayamahal</div></div>
+          </div>
+        </div>
+        <div class="t-footer">SHOW QR CODE AT THE DOOR · CASH PAYMENT AT ENTRY · BLRSTREETBALL 2025</div>
+      </div>
+      <button class="t-dl-btn" onclick="downloadTicket()">⬇ &nbsp;DOWNLOAD TICKET</button>
+      <p class="t-email-note">📧 A copy of this ticket has been sent to your email.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://dxuraqjrarpqarratjbz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dXJhcWpyYXJwcWFycmF0amJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjc4MjUsImV4cCI6MjA5MjEwMzgyNX0.1yEE7FGRF1Y0fjJ80r4jg1QUcC-xlLzzg5LdGzv8fek';
+const EVENT_ID = '42455e14-19e0-439d-963d-8b0e836f2a27';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let activeType = 'player';
+
+const TYPES = {
+  player:   { badge: 'PLAYER REGISTRATION',   title: 'REGISTER AS PLAYER',   price: '₹300', label: 'PLAYER — 1V1 BATTLE',     partner: false },
+  '2v2':    { badge: '2V2 TEAM REGISTRATION', title: 'REGISTER 2V2 TEAM',    price: '₹500', label: '2V2 TEAM TOURNAMENT',     partner: true  },
+  attendee: { badge: 'ATTENDEE REGISTRATION', title: 'REGISTER AS ATTENDEE', price: '₹150', label: 'ATTENDEE PASS',           partner: false },
+};
+
+/* ── COUNTDOWN ── */
+const target = new Date('2025-08-15T18:00:00+05:30').getTime();
+function tick() {
+  const d = target - Date.now();
+  if (d < 0) return;
+  document.getElementById('cdD').textContent = String(Math.floor(d/86400000)).padStart(2,'0');
+  document.getElementById('cdH').textContent = String(Math.floor((d%86400000)/3600000)).padStart(2,'0');
+  document.getElementById('cdM').textContent = String(Math.floor((d%3600000)/60000)).padStart(2,'0');
+  document.getElementById('cdS').textContent = String(Math.floor((d%60000)/1000)).padStart(2,'0');
+}
+setInterval(tick,1000); tick();
+
+/* ── SEATS ── */
+async function loadSeats() {
+  const { data } = await sb.from('events').select('seats').eq('id', EVENT_ID).single();
+  if (!data) return;
+  const s = data.seats;
+  document.getElementById('seats-topbar').textContent = s + ' SPOTS LEFT';
+  document.getElementById('player-seats').textContent = s + ' spots remaining';
+  document.getElementById('attendee-seats').textContent = s + ' spots remaining';
+  document.getElementById('m-seats-note').textContent = s + ' spots remaining';
+}
+loadSeats();
+
+/* ── MODAL OPEN / CLOSE ── */
+function openModal(type) {
+  activeType = type;
+  const cfg = TYPES[type];
+  document.getElementById('m-badge').textContent = cfg.badge;
+  document.getElementById('m-title').textContent = cfg.title;
+  document.getElementById('m-price').textContent = cfg.price;
+  document.getElementById('partner-row').style.display = cfg.partner ? 'flex' : 'none';
+
+  // reset to form
+  document.getElementById('m-form').style.display   = 'block';
+  document.getElementById('m-ticket').style.display = 'none';
+  document.getElementById('f-err').style.display    = 'none';
+  document.getElementById('f-submit').textContent   = 'CLAIM MY TICKET →';
+  document.getElementById('f-submit').disabled      = false;
+  ['f-name','f-email','f-phone','f-partner'].forEach(id => document.getElementById(id).value = '');
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleBgClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── TICKET CODE ── */
+function genCode() {
+  const pfx = activeType === 'player' ? 'BLRS-P' : activeType === '2v2' ? 'BLRS-2' : 'BLRS-A';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = pfx + '-';
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 4; j++) c += chars[Math.floor(Math.random() * chars.length)];
+    if (i < 2) c += '-';
+  }
+  return c;
+}
+
+/* ── REGISTER ── */
+async function doRegister() {
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const partner = document.getElementById('f-partner').value.trim();
+  const btn     = document.getElementById('f-submit');
+  const err     = document.getElementById('f-err');
+  err.style.display = 'none';
+
+  if (!name)  { showErr('Please enter your full name.'); return; }
+  if (!email || !email.includes('@')) { showErr('Please enter a valid email address.'); return; }
+  if (!phone) { showErr('Please enter your phone number.'); return; }
+  if (activeType === '2v2' && !partner) { showErr("Please enter your partner's name."); return; }
+
+  btn.textContent = 'PROCESSING…'; btn.disabled = true;
+
+  // Check seats
+  const { data: ev } = await sb.from('events').select('seats').eq('id', EVENT_ID).single();
+  if (!ev || ev.seats <= 0) { showErr('Sorry — this event is sold out.'); btn.textContent = 'SOLD OUT'; return; }
+
+  // Check duplicate
+  const { data: dup } = await sb.from('tickets')
+    .select('id').eq('event_id', EVENT_ID).eq('attendee_email', email.toLowerCase())
+    .neq('status','cancelled').maybeSingle();
+  if (dup) { showErr('This email already has a ticket for this event.'); btn.textContent = 'CLAIM MY TICKET →'; btn.disabled = false; return; }
+
+  const code = genCode();
+  const attendeeName = activeType === '2v2' && partner ? `${name} & ${partner}` : name;
+
+  const { error } = await sb.from('tickets').insert({
+    event_id: EVENT_ID,
+    ticket_code: code,
+    attendee_name: attendeeName,
+    attendee_email: email.toLowerCase(),
+    attendee_phone: phone,
+    status: 'valid'
+  });
+
+  if (error) { showErr('Registration failed — please try again.'); btn.textContent = 'CLAIM MY TICKET →'; btn.disabled = false; console.error(error); return; }
+
+  // Decrement seats
+  await sb.from('events').update({ seats: ev.seats - 1 }).eq('id', EVENT_ID);
+
+  // Email (non-blocking)
+  fetch(`${SUPABASE_URL}/functions/v1/send-ticket`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+    body: JSON.stringify({ name: attendeeName, email, phone, ticketCode: code, eventName: 'BLRSTREETBALL' })
+  }).catch(()=>{});
+
+  // Show ticket
+  renderTicket({ name: attendeeName, phone, code });
+  loadSeats();
+}
+
+function showErr(msg) {
+  const e = document.getElementById('f-err');
+  e.textContent = msg; e.style.display = 'block';
+  document.getElementById('f-submit').textContent = 'CLAIM MY TICKET →';
+  document.getElementById('f-submit').disabled = false;
+}
+
+function renderTicket({ name, phone, code }) {
+  document.getElementById('m-form').style.display   = 'none';
+  document.getElementById('m-ticket').style.display = 'block';
+  document.getElementById('t-type').textContent  = TYPES[activeType].label;
+  document.getElementById('t-code').textContent  = code;
+  document.getElementById('t-name').textContent  = name;
+  document.getElementById('t-phone').textContent = phone;
+  QRCode.toCanvas(document.getElementById('qr-canvas'), code, {
+    width: 180, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
+  });
+}
+
+/* ── DOWNLOAD ── */
+function downloadTicket() {
+  const qr   = document.getElementById('qr-canvas');
+  const name = document.getElementById('t-name').textContent;
+  const code = document.getElementById('t-code').textContent;
+  const type = document.getElementById('t-type').textContent;
+
+  const c = document.createElement('canvas');
+  c.width = 600; c.height = 840;
+  const ctx = c.getContext('2d');
+
+  // BG
+  ctx.fillStyle = '#0d0d0d'; ctx.fillRect(0,0,600,840);
+
+  // Orange bar
+  const g = ctx.createLinearGradient(0,0,600,0);
+  g.addColorStop(0,'#FF4D00'); g.addColorStop(.5,'#ff8c42'); g.addColorStop(1,'#FF4D00');
+  ctx.fillStyle = g; ctx.fillRect(0,0,600,5);
+
+  // Event name
+  ctx.fillStyle = '#FF4D00';
+  ctx.font = 'bold 50px Arial Black, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('BLRSTREETBALL', 300, 72);
+
+  // Type
+  ctx.fillStyle = '#555'; ctx.font = '700 12px monospace';
+  ctx.fillText(type.toUpperCase(), 300, 100);
+
+  // Confirmed badge bg
+  ctx.fillStyle = 'rgba(255,77,0,.1)';
+  ctx.beginPath(); ctx.roundRect(195,112,210,28,3); ctx.fill();
+  ctx.fillStyle = '#FF4D00'; ctx.font = '700 10px monospace';
+  ctx.fillText('✓  REGISTRATION CONFIRMED', 300, 131);
+
+  // QR
+  ctx.drawImage(qr, 210, 155, 180, 180);
+
+  // Code
+  ctx.fillStyle = '#FF4D00'; ctx.font = '700 15px monospace';
+  ctx.fillText(code, 300, 374);
+
+  // Dashed line
+  ctx.strokeStyle = 'rgba(255,77,0,.22)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(40,392); ctx.lineTo(560,392); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Fields
+  const fields = [['NAME',name],['DATE','15 Aug 2025'],['VENUE','Depot 18, Jayamahal'],['PAYMENT','Cash at the door']];
+  fields.forEach(([lbl,val],i) => {
+    const x = i%2===0?60:330;
+    const y = 430 + Math.floor(i/2)*78;
+    ctx.fillStyle='#555'; ctx.font='700 10px monospace'; ctx.textAlign='left';
+    ctx.fillText(lbl,x,y);
+    ctx.fillStyle='#F2EFE8'; ctx.font='700 16px Helvetica,sans-serif';
+    ctx.fillText(val,x,y+22);
+  });
+
+  // Bottom bar
+  ctx.fillStyle='rgba(255,77,0,.06)'; ctx.fillRect(0,730,600,110);
+  ctx.fillStyle='#444'; ctx.font='600 11px monospace'; ctx.textAlign='center';
+  ctx.fillText('SHOW THIS QR CODE AT THE DOOR · BLRSTREETBALL 2025',300,788);
+  ctx.fillStyle='#FF4D00'; ctx.font='bold 18px Arial Black,sans-serif';
+  ctx.fillText('LISTED ON NEXUS PORTAL',300,816);
+
+  const a = document.createElement('a');
+  a.download = `BLRSTREETBALL-${code}.png`;
+  a.href = c.toDataURL('image/png');
+  a.click();
+}
+</script>
 </body>
 </html>
