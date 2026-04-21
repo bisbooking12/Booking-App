@@ -773,9 +773,11 @@ async function handleFileSelect(file) {
     previewImg(uploadedImageUrl); toast('Uploaded ✓','ok');
 }
 const dz=document.getElementById('drop-zone');
+if(dz){
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleFileSelect(f);});
+}
 
 /* ── EVENT MODAL ── */
 function openAdd() { editingId=null; document.getElementById('modal-title').textContent='Add Event'; clearForm(); document.getElementById('overlay').classList.add('open'); }
@@ -1209,11 +1211,11 @@ let toastTimer;
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.className='';},2800);}
 
 /* ── BACKDROP CLICKS ── */
-document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
-document.getElementById('del-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('del-overlay'))closeDelModal();});
-document.getElementById('sub-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('sub-overlay'))closeSub();});
-document.getElementById('user-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('user-overlay'))closeUserModal();});
-document.getElementById('edit-user-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('edit-user-overlay'))closeEditUserModal();});
+const _ov=document.getElementById('overlay'); if(_ov) _ov.addEventListener('click',e=>{if(e.target===_ov)closeModal();});
+const _dov=document.getElementById('del-overlay'); if(_dov) _dov.addEventListener('click',e=>{if(e.target===_dov)closeDelModal();});
+const _sov=document.getElementById('sub-overlay'); if(_sov) _sov.addEventListener('click',e=>{if(e.target===_sov)closeSub();});
+const _uov=document.getElementById('user-overlay'); if(_uov) _uov.addEventListener('click',e=>{if(e.target===_uov)closeUserModal();});
+const _euov=document.getElementById('edit-user-overlay'); if(_euov) _euov.addEventListener('click',e=>{if(e.target===_euov)closeEditUserModal();});
 </script>
 </body>
 </html>
