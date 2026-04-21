@@ -2298,6 +2298,8 @@ var qrcode = function() {
       define([], factory);
   } else if (typeof exports === 'object') {
       module.exports = factory();
+  } else {
+      window.qrcode = factory();
   }
 }(function () {
     return qrcode;
