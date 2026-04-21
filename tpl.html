@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPL × Nexus — The Pro League</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,900;1,900&family=DM+Mono:wght@400;500&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange: #FF5C00;
+    --orange-dim: #CC4900;
+    --orange-glow: rgba(255,92,0,0.18);
+    --black: #000;
+    --gray-1: #0d0d0d;
+    --gray-2: #141414;
+    --gray-3: #1e1e1e;
+    --gray-4: #2a2a2a;
+    --gray-5: #444;
+    --white: #fff;
+    --off-white: #e8e5df;
+    --mono: 'DM Mono', monospace;
+    --cond: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,92,0,0.15);
+  }
+  .nav-logo {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    color: var(--orange);
+  }
+  .nav-logo span { color: var(--white); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--off-white);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; color: var(--orange); }
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: #ff7a2a; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; align-items: flex-end;
+    padding: 0 48px 80px;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,92,0,0.10) 0%, transparent 70%),
+      linear-gradient(180deg, #000 0%, #0d0d0d 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,92,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,92,0,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: linear-gradient(180deg, transparent 0%, black 30%, black 70%, transparent 100%);
+  }
+  .hero-badge {
+    position: absolute; top: 120px; right: 48px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    padding: 8px 14px;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%,100% { opacity: 1; } 50% { opacity: 0.5; }
+  }
+  .hero-eyebrow {
+    position: absolute; top: 120px; left: 48px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .hero-content { position: relative; max-width: 900px; }
+  .hero-title {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: clamp(72px, 11vw, 140px);
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin-bottom: 32px;
+  }
+  .hero-title .line-orange { color: var(--orange); }
+  .hero-title .line-stroke {
+    -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+    color: transparent;
+  }
+  .hero-meta {
+    display: flex; gap: 40px; align-items: flex-start;
+    margin-bottom: 40px;
+  }
+  .hero-meta-item label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 4px;
+  }
+  .hero-meta-item span {
+    font-family: var(--cond);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--white);
+  }
+  .hero-actions { display: flex; gap: 16px; }
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--orange);
+    color: var(--black);
+    border: none;
+    padding: 16px 36px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #ff7a2a; transform: translateY(-1px); }
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 16px 36px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* ── COUNTDOWN ── */
+  .countdown-bar {
+    background: var(--gray-1);
+    border-top: 1px solid var(--gray-3);
+    border-bottom: 1px solid var(--gray-3);
+    padding: 32px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px;
+  }
+  .countdown-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    white-space: nowrap;
+  }
+  .countdown-units { display: flex; gap: 4px; align-items: center; }
+  .count-block { text-align: center; }
+  .count-num {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1;
+    color: var(--white);
+    min-width: 72px;
+    display: block;
+  }
+  .count-unit {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+  .count-sep {
+    font-family: var(--cond);
+    font-size: 40px;
+    font-weight: 900;
+    color: var(--orange);
+    margin: 0 8px;
+    line-height: 1;
+    align-self: flex-start;
+    padding-top: 4px;
+  }
+  .countdown-bar .btn-primary { flex-shrink: 0; }
+
+  /* ── SECTION SHARED ── */
+  section { padding: 100px 48px; }
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px; height: 1px;
+    background: var(--orange);
+  }
+  .section-title {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: clamp(40px, 5vw, 72px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── REGISTRATION ── */
+  .reg-section { background: var(--gray-1); }
+  .reg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-top: 56px;
+  }
+  .reg-card {
+    background: var(--gray-2);
+    padding: 36px 32px;
+    position: relative;
+    transition: background 0.2s;
+    border: 1px solid var(--gray-3);
+  }
+  .reg-card.featured {
+    background: var(--gray-1);
+    border-color: var(--orange);
+  }
+  .reg-card:hover { background: var(--gray-3); }
+  .reg-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--orange);
+    color: var(--black);
+    padding: 4px 10px;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+  .reg-tier-name {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .reg-price {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--orange);
+    margin-bottom: 4px;
+  }
+  .reg-price span {
+    font-size: 22px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.4);
+  }
+  .reg-desc {
+    font-family: var(--body);
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .reg-spots {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 28px;
+  }
+  .reg-spots strong { color: var(--orange); }
+  .reg-features { list-style: none; margin-bottom: 32px; }
+  .reg-features li {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-4);
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: 0.05em;
+  }
+  .reg-features li::before {
+    content: '';
+    display: block;
+    width: 5px; height: 5px;
+    background: var(--orange);
+    flex-shrink: 0;
+  }
+
+  /* ── FORMAT ── */
+  .format-section { background: var(--black); }
+  .format-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    margin-top: 56px;
+    align-items: start;
+  }
+  .format-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+  .format-stat {
+    background: var(--gray-2);
+    padding: 28px 24px;
+    border: 1px solid var(--gray-3);
+  }
+  .format-stat-num {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 48px;
+    color: var(--orange);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .format-stat-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .format-rules { }
+  .format-rule {
+    display: flex; gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--gray-3);
+    align-items: flex-start;
+  }
+  .format-rule:first-child { border-top: 1px solid var(--gray-3); }
+  .rule-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--orange);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .rule-text {
+    font-family: var(--body);
+    font-size: 15px;
+    color: var(--off-white);
+    line-height: 1.5;
+  }
+  .rule-text strong {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  /* ── ABOUT ── */
+  .about-section { background: var(--gray-1); }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 80px;
+    margin-top: 56px;
+    align-items: start;
+  }
+  .about-text p {
+    font-family: var(--body);
+    font-size: 17px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .about-text p strong { color: var(--white); font-weight: 500; }
+  .about-pull {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.2;
+    color: var(--white);
+    border-left: 3px solid var(--orange);
+    padding-left: 24px;
+    margin: 36px 0;
+    letter-spacing: 0.02em;
+  }
+  .about-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .about-stat {
+    background: var(--gray-2);
+    border: 1px solid var(--gray-3);
+    padding: 24px 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .about-stat-num {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 44px;
+    color: var(--orange);
+    line-height: 1;
+  }
+  .about-stat-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* ── VENUE ── */
+  .venue-section { background: var(--black); }
+  .venue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 56px;
+  }
+  .venue-card {
+    background: var(--gray-2);
+    border: 1px solid var(--gray-3);
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .venue-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--orange);
+  }
+  .venue-card-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+  .venue-card-name {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 36px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 12px;
+  }
+  .venue-card-location {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 24px;
+  }
+  .venue-card-desc {
+    font-family: var(--body);
+    font-size: 15px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.7;
+  }
+  .venue-card-meta {
+    margin-top: 28px;
+    display: flex; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .venue-meta-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+  }
+  .venue-meta-item strong { color: var(--white); display: block; font-size: 13px; }
+
+  /* ── SOCIALS ── */
+  .social-bar {
+    background: var(--gray-1);
+    border-top: 1px solid var(--gray-3);
+    padding: 56px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px;
+  }
+  .social-heading {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .social-heading span { color: var(--orange); }
+  .social-links { display: flex; gap: 16px; }
+  .social-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 1px solid var(--gray-4);
+    color: var(--white);
+    padding: 12px 22px;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .social-link:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    border-top: 1px solid var(--gray-3);
+    padding: 40px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    color: var(--orange);
+  }
+  .footer-logo span { color: rgba(255,255,255,0.3); }
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.2);
+  }
+  .footer-nexus {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+  .footer-nexus a { color: var(--orange); text-decoration: none; }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--orange);
+    overflow: hidden;
+    padding: 10px 0;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-flex;
+    animation: ticker 20s linear infinite;
+    gap: 0;
+  }
+  .ticker-item {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--black);
+    padding: 0 32px;
+  }
+  .ticker-sep { color: rgba(0,0,0,0.35); }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ── ANIMATIONS ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">TPL <span>×</span> NEXUS</div>
+  <ul class="nav-links">
+    <li><a href="#register">Register</a></li>
+    <li><a href="#format">Format</a></li>
+    <li><a href="#about">About TPL</a></li>
+    <li><a href="#venue">Venue</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">Get Your Spot</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">Nexus presents · The Pro League</div>
+  <div class="hero-badge">● Registrations Open</div>
+
+  <div class="hero-content">
+    <h1 class="hero-title">
+      <span class="line-orange">One</span><br>
+      <span>Court.</span><br>
+      <span class="line-stroke">One King.</span>
+    </h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <label>Date</label>
+        <span>15 June 2025</span>
+      </div>
+      <div class="hero-meta-item">
+        <label>Venue</label>
+        <span>Mall of Asia, Bangalore</span>
+      </div>
+      <div class="hero-meta-item">
+        <label>Format</label>
+        <span>9v9 League · 1v1 Street</span>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">Register Now</button>
+      <button class="btn-ghost" onclick="document.getElementById('format').scrollIntoView({behavior:'smooth'})">View Format</button>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">The Pro League <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Bangalore's Largest Sports Event <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">9v9 Football · 1v1 Street Battles <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">2000+ Attendees <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Live DJ · Supercars · Celebrities <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Fit Fusion 2.0 <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">The Pro League <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Bangalore's Largest Sports Event <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">9v9 Football · 1v1 Street Battles <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">2000+ Attendees <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Live DJ · Supercars · Celebrities <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Fit Fusion 2.0 <span class="ticker-sep">✦</span></span>
+  </div>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="countdown-bar">
+  <div class="countdown-label">Event Starts In</div>
+  <div class="countdown-units">
+    <div class="count-block">
+      <span class="count-num" id="cd-days">00</span>
+      <span class="count-unit">Days</span>
+    </div>
+    <span class="count-sep">:</span>
+    <div class="count-block">
+      <span class="count-num" id="cd-hours">00</span>
+      <span class="count-unit">Hours</span>
+    </div>
+    <span class="count-sep">:</span>
+    <div class="count-block">
+      <span class="count-num" id="cd-mins">00</span>
+      <span class="count-unit">Mins</span>
+    </div>
+    <span class="count-sep">:</span>
+    <div class="count-block">
+      <span class="count-num" id="cd-secs">00</span>
+      <span class="count-unit">Secs</span>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="document.getElementById('register').scrollIntoView({behavior:'smooth'})">Secure Your Spot →</button>
+</div>
+
+<!-- REGISTRATION -->
+<section class="reg-section" id="register">
+  <div class="section-eyebrow">Registration Tiers</div>
+  <h2 class="section-title">Choose Your<br>Battle Mode</h2>
+  <div class="reg-grid">
+
+    <div class="reg-card fade-up">
+      <div class="reg-tag">Spectator</div>
+      <div class="reg-tier-name">Crowd Pass</div>
+      <div class="reg-price">₹299 <span>/ head</span></div>
+      <div class="reg-desc">Watch the action unfold from the stands. Includes access to all live matches and the DJ stage.</div>
+      <div class="reg-spots">Spots: <strong>800 remaining</strong> of 1,200</div>
+      <ul class="reg-features">
+        <li>Full-day event access</li>
+        <li>DJ stage & entertainment zone</li>
+        <li>Supercar exhibition</li>
+        <li>Food court access</li>
+      </ul>
+      <button class="btn-ghost" style="width:100%">Register as Spectator</button>
+    </div>
+
+    <div class="reg-card featured fade-up" style="transition-delay:0.1s">
+      <div class="reg-tag">Most Popular</div>
+      <div class="reg-tier-name">Player Pass</div>
+      <div class="reg-price">₹1,499 <span>/ player</span></div>
+      <div class="reg-desc">Step onto the pitch. Full team registration with guaranteed match slots and kit inclusion.</div>
+      <div class="reg-spots">Spots: <strong>48 remaining</strong> of 200</div>
+      <ul class="reg-features">
+        <li>11 guaranteed matches</li>
+        <li>Official TPL match jersey</li>
+        <li>Post-event stats breakdown</li>
+        <li>Spectator access for +2 guests</li>
+        <li>Trophy & medal ceremony</li>
+      </ul>
+      <button class="btn-primary" style="width:100%">Register as Player</button>
+    </div>
+
+    <div class="reg-card fade-up" style="transition-delay:0.2s">
+      <div class="reg-tag">Elite</div>
+      <div class="reg-tier-name">Street King</div>
+      <div class="reg-price">₹599 <span>/ duelist</span></div>
+      <div class="reg-desc">Enter the 1v1 Street Battle bracket. Solo glory, winner-takes-all knockout format.</div>
+      <div class="reg-spots">Spots: <strong>12 remaining</strong> of 64</div>
+      <ul class="reg-features">
+        <li>1v1 knockout bracket</li>
+        <li>Celebrity judges panel</li>
+        <li>Prize pool: ₹25,000</li>
+        <li>Spectator access for +1 guest</li>
+      </ul>
+      <button class="btn-ghost" style="width:100%">Enter the Battle</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- FORMAT -->
+<section class="format-section" id="format">
+  <div class="section-eyebrow">Competition Structure</div>
+  <h2 class="section-title">The Format</h2>
+  <div class="format-grid">
+    <div>
+      <div class="format-stat-row">
+        <div class="format-stat fade-up">
+          <div class="format-stat-num">9v9</div>
+          <div class="format-stat-label">Team Format</div>
+        </div>
+        <div class="format-stat fade-up" style="transition-delay:0.05s">
+          <div class="format-stat-num">11</div>
+          <div class="format-stat-label">Matches Guaranteed</div>
+        </div>
+      </div>
+      <div class="format-stat-row">
+        <div class="format-stat fade-up" style="transition-delay:0.1s">
+          <div class="format-stat-num">64</div>
+          <div class="format-stat-label">Street Battle Slots</div>
+        </div>
+        <div class="format-stat fade-up" style="transition-delay:0.15s">
+          <div class="format-stat-num">1</div>
+          <div class="format-stat-label">Day. All Out.</div>
+        </div>
+      </div>
+    </div>
+    <div class="format-rules fade-up">
+      <div class="format-rule">
+        <span class="rule-num">01</span>
+        <p class="rule-text"><strong>League Stage:</strong> Teams compete in a round-robin group phase. Top 2 from each group advance to knockouts.</p>
+      </div>
+      <div class="format-rule">
+        <span class="rule-num">02</span>
+        <p class="rule-text"><strong>9v9 Structure:</strong> Each squad fields 9 players per side on a reduced pitch for high-tempo, end-to-end action.</p>
+      </div>
+      <div class="format-rule">
+        <span class="rule-num">03</span>
+        <p class="rule-text"><strong>Street Battles:</strong> 1v1 freestyle & skill duels run concurrently — open bracket, celebrity judging, ₹25K prize pool.</p>
+      </div>
+      <div class="format-rule">
+        <span class="rule-num">04</span>
+        <p class="rule-text"><strong>Finals:</strong> Top 2 teams clash under full stadium lights at Mall of Asia's main court for the TPL title.</p>
+      </div>
+      <div class="format-rule">
+        <span class="rule-num">05</span>
+        <p class="rule-text"><strong>Atmosphere:</strong> Live DJs, supercar showcase, and celebrity appearances run throughout the entire event day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section" id="about">
+  <div class="section-eyebrow">About The Organisation</div>
+  <h2 class="section-title">The Pro League</h2>
+  <div class="about-grid">
+    <div class="about-text fade-up">
+      <p><strong>The Pro League (TPL)</strong> is Bangalore's premier sports and entertainment organisation — the city's definitive answer to what a sporting spectacle should look like.</p>
+      <p>We operate at the intersection of <strong>Entertainment, Competition, and Community</strong>. TPL exists to hand local talent a professional-grade platform while delivering an atmosphere that rivals a sold-out concert for every single spectator.</p>
+      <div class="about-pull">"TPL isn't just a league. It's a spectacle."</div>
+      <p>From Fit Fusion 2.0 at the Mall of Asia — which pulled over <strong>2,000 attendees</strong> — to intimate street battles at Depot 18, we've built 15+ events that prove Bangalore's sports culture punches well above its weight.</p>
+      <p>Off the pitch, TPL leads the <strong>"Giving Back, The TPL Way"</strong> initiative — a community programme involving volunteering, local donations, and making sport accessible beyond the scoreboard.</p>
+    </div>
+    <div class="about-stats fade-up" style="transition-delay:0.15s">
+      <div class="about-stat">
+        <div class="about-stat-num">2000+</div>
+        <div class="about-stat-label">Attendees per event</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">15+</div>
+        <div class="about-stat-label">Events hosted</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">#1</div>
+        <div class="about-stat-label">Sports org in Bangalore</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-num">∞</div>
+        <div class="about-stat-label">Community impact</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VENUE -->
+<section class="venue-section" id="venue">
+  <div class="section-eyebrow">Where We Play</div>
+  <h2 class="section-title">The Arenas</h2>
+  <div class="venue-grid">
+    <div class="venue-card fade-up">
+      <div class="venue-card-eyebrow">Primary Venue · TPL Season Flagship</div>
+      <div class="venue-card-name">Mall of Asia</div>
+      <div class="venue-card-location">Bangalore, Karnataka · Indoor Arena Complex</div>
+      <p class="venue-card-desc">Bangalore's most prestigious indoor sports destination. Home of TPL's Fit Fusion 2.0 — the largest event in TPL history with over 2,000 attendees packing the complex for a day of sport, music, and spectacle.</p>
+      <div class="venue-card-meta">
+        <div class="venue-meta-item">
+          <strong>2,000+</strong>
+          Capacity
+        </div>
+        <div class="venue-meta-item">
+          <strong>Full Day</strong>
+          Event Duration
+        </div>
+        <div class="venue-meta-item">
+          <strong>Indoor</strong>
+          Climate Controlled
+        </div>
+      </div>
+    </div>
+    <div class="venue-card fade-up" style="transition-delay:0.1s">
+      <div class="venue-card-eyebrow">Street Battles Venue</div>
+      <div class="venue-card-name">Depot 18</div>
+      <div class="venue-card-location">Bangalore, Karnataka · Urban Lifestyle Hub</div>
+      <p class="venue-card-desc">The underground heart of TPL's street culture. Depot 18 hosts the raw, intimate 1v1 street battles — a stripped-back cage of pure skill where Bangalore's finest ballers go head-to-head for glory and cash.</p>
+      <div class="venue-card-meta">
+        <div class="venue-meta-item">
+          <strong>Urban</strong>
+          Setting
+        </div>
+        <div class="venue-meta-item">
+          <strong>1v1 Format</strong>
+          Street Battles
+        </div>
+        <div class="venue-meta-item">
+          <strong>Night Vibes</strong>
+          Atmosphere
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL BAR -->
+<div class="social-bar">
+  <div class="social-heading">Follow <span>@TheProLeague</span></div>
+  <div class="social-links">
+    <a class="social-link" href="https://instagram.com" target="_blank">Instagram</a>
+    <a class="social-link" href="#" target="_blank">YouTube</a>
+    <a class="social-link" href="#" target="_blank">WhatsApp Community</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TPL <span>× NEXUS 2025</span></div>
+  <div class="footer-copy">© 2025 The Pro League · All rights reserved</div>
+  <div class="footer-nexus">Powered by <a href="https://nexus-silk-delta.vercel.app" target="_blank">Nexus</a></div>
+</footer>
+
+<script>
+  // Countdown to June 15 2025
+  const target = new Date('2025-06-15T08:00:00');
+  function updateCountdown() {
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-days').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-mins').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-secs').textContent = String(s).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // Scroll animations
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
