@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BLRSTREETBALL — Summer Series 2025</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -447,7 +447,7 @@
           <div class="t-event">BLRSTREETBALL</div>
           <div class="t-type" id="t-type">PLAYER — 1V1 BATTLE</div>
           <div class="t-confirmed"><span>✓</span> REGISTRATION CONFIRMED</div>
-          <div class="t-qr"><img id="qr-canvas" alt="QR Code" style="border:3px solid var(--cream);border-radius:3px;width:180px;height:180px;display:none;"></div>
+          <div class="t-qr"><canvas id="qr-canvas" style="border:3px solid var(--cream);border-radius:3px;"></canvas></div>
           <div class="t-code" id="t-code"></div>
           <hr class="t-divider">
           <div class="t-grid">
@@ -610,6 +610,31 @@ function showErr(msg) {
   document.getElementById('f-submit').disabled = false;
 }
 
+function makeQR(code) {
+  const qr = qrcode(0, 'M');
+  qr.addData(code);
+  qr.make();
+  return qr;
+}
+
+function drawQRToCanvas(canvas, code, size) {
+  const qr = makeQR(code);
+  const count = qr.getModuleCount();
+  const cell = Math.floor(size / count);
+  const actualSize = cell * count;
+  canvas.width = actualSize;
+  canvas.height = actualSize;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, actualSize, actualSize);
+  ctx.fillStyle = '#000000';
+  for (let r = 0; r < count; r++) {
+    for (let c = 0; c < count; c++) {
+      if (qr.isDark(r, c)) ctx.fillRect(c * cell, r * cell, cell, cell);
+    }
+  }
+}
+
 function renderTicket({ name, phone, code }) {
   document.getElementById('m-form').style.display   = 'none';
   document.getElementById('m-ticket').style.display = 'block';
@@ -617,17 +642,13 @@ function renderTicket({ name, phone, code }) {
   document.getElementById('t-code').textContent  = code;
   document.getElementById('t-name').textContent  = name;
   document.getElementById('t-phone').textContent = phone;
-  QRCode.toDataURL(code, {
-    width: 180, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
-  }).then(url => {
-    const img = document.getElementById('qr-canvas');
-    img.src = url;
-    img.style.display = 'block';
-  }).catch(err => console.error('QR generation failed:', err));
+  // Use requestAnimationFrame so the canvas is in the visible DOM before we draw
+  requestAnimationFrame(() => {
+    drawQRToCanvas(document.getElementById('qr-canvas'), code, 180);
+  });
 }
 
 function downloadTicket() {
-  const qrImg = document.getElementById('qr-canvas');
   const name = document.getElementById('t-name').textContent;
   const code = document.getElementById('t-code').textContent;
   const type = document.getElementById('t-type').textContent;
@@ -698,13 +719,10 @@ function downloadTicket() {
     a.click();
   }
 
-  if (qrImg.src) {
-    const bmp = new Image();
-    bmp.onload = () => drawAll(bmp);
-    bmp.src = qrImg.src;
-  } else {
-    drawAll(null);
-  }
+  // Generate a fresh QR canvas for the download image
+  const qrCanvas = document.createElement('canvas');
+  drawQRToCanvas(qrCanvas, code, 180);
+  drawAll(qrCanvas);
 }
 </script>
 </body>
