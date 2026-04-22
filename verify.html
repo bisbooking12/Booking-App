@@ -150,6 +150,7 @@
         <div class="topbar-event" id="topbar-event">Loading…</div>
     </div>
     <div class="topbar-r">
+        <select id="admin-event-switcher" style="display:none;padding:5px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.68rem;font-weight:700;text-transform:uppercase;cursor:pointer;outline:none;max-width:160px;"></select>
         <div style="font-size:.68rem;color:var(--text3);" id="topbar-user"></div>
         <button class="btn-sm" onclick="doLogout()">Sign Out</button>
     </div>
@@ -190,7 +191,7 @@
         <div class="manual-wrap">
             <label class="manual-label">Ticket Code</label>
             <div class="manual-input-row">
-                <input class="manual-input" type="text" id="manual-code" placeholder="BLRS-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
+                <input class="manual-input" type="text" id="manual-code" placeholder="XXXX-XXXX-XXXX-XXXX" oninput="this.value=this.value.toUpperCase()">
                 <button class="btn-check" onclick="checkManual()">Check</button>
             </div>
         </div>
@@ -258,8 +259,27 @@ async function bootVerify(user) {
         if (!assign) { document.getElementById('v-login-err').textContent = 'No event assigned to your account'; document.getElementById('v-login-err').style.display = 'block'; return; }
         currentEventId = assign.event_id;
     }
-    // Admin can see all — default to BLRSTREETBALL
-    else { currentEventId = '42455e14-19e0-439d-963d-8b0e836f2a27'; }
+    // Admin can see all events — load a switcher
+    else {
+        const { data: allEvents } = await sb.from('events').select('id, name').eq('is_live', true).order('sort_order');
+        if (!allEvents || !allEvents.length) {
+            document.getElementById('v-login-err').textContent = 'No live events found';
+            document.getElementById('v-login-err').style.display = 'block';
+            return;
+        }
+        currentEventId = allEvents[0].id;
+        // Build and show the event switcher dropdown
+        const switcher = document.getElementById('admin-event-switcher');
+        switcher.innerHTML = allEvents.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        switcher.value = currentEventId;
+        switcher.style.display = 'inline-block';
+        switcher.onchange = async function() {
+            currentEventId = this.value;
+            const { data: evData } = await sb.from('events').select('name').eq('id', currentEventId).single();
+            document.getElementById('topbar-event').textContent = evData?.name || 'Event';
+            loadTicketList();
+        };
+    }
 
     // Get event name
     const { data: ev } = await sb.from('events').select('name').eq('id', currentEventId).single();
@@ -271,8 +291,13 @@ async function bootVerify(user) {
 
 // Restore session
 (async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) await bootVerify(session.user);
+    try {
+        const { data: { session }, error } = await sb.auth.getSession();
+        if (error || !session?.user) { document.getElementById('login-screen').style.display = 'flex'; return; }
+        await bootVerify(session.user);
+    } catch(e) {
+        document.getElementById('login-screen').style.display = 'flex';
+    }
 })();
 
 /* ── TABS ── */
