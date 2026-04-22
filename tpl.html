@@ -724,7 +724,7 @@ footer{background:var(--ink);padding:36px 44px;display:flex;align-items:center;j
 <script>
 const SUPABASE_URL  = 'https://dxuraqjrarpqarratjbz.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dXJhcWpyYXJwcWFycmF0amJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjc4MjUsImV4cCI6MjA5MjEwMzgyNX0.1yEE7FGRF1Y0fjJ80r4jg1QUcC-xlLzzg5LdGzv8fek';
-const EVENT_ID = '42455e14-19e0-439d-963d-8b0e836f2a27';
+const EVENT_ID = 'f400feb2-e4d1-4506-b625-d3a0f6d527d2';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let activeType = 'pool';
 const TYPES = {
@@ -780,7 +780,8 @@ async function doRegister(){
   const code=genCode();
   const {error}=await sb.from('tickets').insert({event_id:EVENT_ID,ticket_code:code,attendee_name:name,attendee_email:email.toLowerCase(),attendee_phone:phone,status:'valid'});
   if(error){showErr('Registration failed — please try again.');btn.textContent='Get My Wristband 🎟';btn.disabled=false;return;}
-  await sb.from('events').update({seats:ev.seats-1}).eq('id',EVENT_ID);
+  // Atomic decrement — only reduces if seats > 0, prevents oversell
+  await sb.from('events').update({seats:ev.seats-1}).eq('id',EVENT_ID).gt('seats',0);
   fetch(`${SUPABASE_URL}/functions/v1/send-ticket`,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({name,email,phone,ticketCode:code,eventName:'TPL SPLASH RAVE — POOL PARTY 2025'})}).catch(()=>{});
   renderTicket({name,phone,code});loadSeats();
 }
