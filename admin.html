@@ -652,7 +652,7 @@ async function loadManagerView(userId) {
         </div>
         <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
             <a href="verify.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:var(--neon);color:#000;border:none;border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;text-decoration:none;transition:all .15s;">📷 Open Ticket Scanner</a>
-            <a href="blrs.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-decoration:none;transition:all .15s;">🎟 View Registration Page</a>
+            ${ev.event_url && ev.event_url !== '#' ? `<a href="${ev.event_url}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:3px;font-family:'Barlow',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-decoration:none;transition:all .15s;">🎟 View Registration Page</a>` : ''}
         </div>
         <div id="mgr-tickets-section" style="margin-top:28px;">
             <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:900;text-transform:uppercase;color:var(--white);margin-bottom:16px;">Registrations</div>
@@ -742,7 +742,7 @@ async function toggleLive(id,cur) {
     await loadEvents(); toast(cur?'Unpublished':'Published ✓','ok');
 }
 async function setCountdown(id,isCur) {
-    await sb.from('events').update({is_countdown_target:false}).neq('id','00000000-0000-0000-0000-000000000000');
+    await sb.from('events').update({is_countdown_target:false}).not('id','is',null);
     if (!isCur) await sb.from('events').update({is_countdown_target:true}).eq('id',id);
     await loadEvents(); toast(isCur?'Countdown removed':'Countdown set ✓','ok');
 }
@@ -845,7 +845,7 @@ async function saveEvent() {
         countdown_venue:isCd?document.getElementById('f-cdvenue').value.trim():null,
     };
     if (!payload.name) { toast('Event name required','err'); btn.textContent='Save Event →'; btn.disabled=false; return; }
-    if (isCd) await sb.from('events').update({is_countdown_target:false}).neq('id',editingId||'00000000-0000-0000-0000-000000000000');
+    if (isCd) await sb.from('events').update({is_countdown_target:false}).not('id','is',null).neq('id',editingId||'');
     let error;
     if (editingId) { ({error}=await sb.from('events').update(payload).eq('id',editingId)); }
     else { payload.sort_order=events.length; ({error}=await sb.from('events').insert(payload)); }
